@@ -46,7 +46,7 @@ Quem lê isto é o agente de desenvolvimento que roda à noite. Regras, sem exce
 ## Próximos passos (ver o quadro em dados/tarefas.json)
 
 - Chave do Claude no `.env` (o Gabriel está gerando).
-- Ponte do WhatsApp (Baileys, como `C:\xampp\htdocs\ContabIA\tools\whatsapp-ponte`) com o chip separado; resumo diário no WhatsApp do Gabriel; aprovações de deploy. O chip citado é o do AprovIA Edu, (11) 95139-3011 no site: confirmar o número e o risco (ban na API não oficial derrubaria o atendimento do AprovIA).
+- Ponte do WhatsApp (Baileys, como `C:\xampp\htdocs\ContabIA\tools\whatsapp-ponte`) com o chip separado; resumo diário no WhatsApp do Gabriel; aprovações de deploy. O chip citado é o do AprovIA Edu, (11) 95139-3011 no site: confirmar o número e o risco (ban na API não oficial derrubaria o atendimento do AprovIA). **Decidido em 04/11:** esse celular passa a ser da empresa (VZ). O Gabriel vai desconectá-lo do ContabIA, que hoje usa o mesmo fluxo (a ponte Baileys), para ser o WhatsApp da central. Mensagens desse número levam só trabalho, nunca assunto pessoal (regra de discrição).
 - Página de Agentes (Gerente, Dev, Revisor, Publicador), execução pelo Claude Agent SDK.
 - Repositório no GitHub, sincronização entre as máquinas, inventário no PC do trabalho.
 - Quadro com arrastar e soltar; e-mails; voz personalizada.

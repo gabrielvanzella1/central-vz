@@ -57,9 +57,9 @@
   },
   {
     "id": 8,
-    "coluna": "ideias",
+    "coluna": "a fazer",
     "titulo": "Avisos e aprovações pelo WhatsApp",
-    "detalhe": "Ponte Baileys do ContabIA, com um chip separado. Depois trocar pela API oficial.",
+    "detalhe": "Celular da empresa (o mesmo do AprovIA, agora da VZ). Passos: 1) Gabriel desconecta o número do ContabIA (ponte Baileys em ContabIA/tools/whatsapp-ponte); 2) a central reaproveita essa ponte e pareia o número lendo o QR code; 3) só o número do Gabriel (e depois Derik e Mateus) é atendido; 4) mensagens só de trabalho. Risco: a API não oficial pode levar ban; depois migrar para a API oficial.",
     "projeto": "central-vz",
     "criado": "2026-11-04T22:36:01.340Z"
   },
