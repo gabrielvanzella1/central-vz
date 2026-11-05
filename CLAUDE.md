@@ -30,6 +30,15 @@ Painel interno da VZ Soluções em Tecnologia (Gabriel Vanzella, devs Derik e Ma
 - Tudo que for abastecido no VS Code (conhecimento, skills, agentes, MCPs) deve valer em **todos os PCs e todos os projetos**.
 - Banco/Open Finance fica por último.
 
+## Continuar amanhã (parou em 04/11 à noite)
+
+1. **Liberar o central-vz para o Claude no GitHub** (o Gabriel faz): janela anônima, entrar no GitHub como **gabrielvanzella1**, abrir https://github.com/settings/installations, Claude > Configure > Repository access, marcar **central-vz** (manter o siteVZ) e salvar. Conferir em claude.ai/code > Repositório que o central-vz aparece. O siteVZ já aparece, então o app já está nessa conta; o problema provável era o navegador logado na conta antiga (gabrielvanzella).
+2. **Criar a rotina do agente da noite** (o Claude cria com /schedule depois do passo 1): nome "Agente da noite – Central da VZ"; todo dia 2h de Brasília = cron `0 5 * * *` (UTC); repositório https://github.com/gabrielvanzella1/central-vz; modelo claude-sonnet-5-5; ambiente Default; **sem conectores** (`clear_mcp_connections: true`: o Windsor da conta mexe em anúncios). Instrução: ler este CLAUDE.md e seguir a seção "Agente da noite"; sem cartão `#agente` em "a fazer", terminar sem fazer nada. Painel: https://claude.ai/code/routines
+3. **Pesquisa na internet para a VZ/Sabrina**: hoje ela não pesquisa. Acrescentar em conversar() a ferramenta de servidor `{type:'web_search_20260209', name:'web_search', max_uses:3}` (o loop já trata `pause_turn`), regra no FIXO para citar a fonte e um aviso "pesquisou na internet" na tela.
+4. **Avatar 3D com a boca mexendo**: depende do Gabriel criar a Sabrina no VRoid Studio (grátis) e salvar em `public/vz/sabrina.vrm`; depois three.js + @pixiv/three-vrm com a boca ligada ao volume da voz.
+5. **WhatsApp no celular da empresa** (cartão 8): quando o Gabriel desconectar o número do ContabIA.
+6. Conferir a doca da conversa no celular (390px).
+
 ## Agente da noite (regras para o agente agendado na nuvem)
 
 Quem lê isto é o agente de desenvolvimento que roda à noite. Regras, sem exceção:

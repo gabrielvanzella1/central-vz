@@ -520,5 +520,16 @@
     "prazo": null,
     "criado": "2026-11-05T00:32:25.632Z",
     "por": "gabriel"
+  },
+  {
+    "id": 58,
+    "titulo": "Dar acesso à internet para a VZ (pesquisa na web)",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "detalhe": "Sugestão do VZ: O Gabriel pediu que a VZ pesquise na internet (por exemplo, sobre agentes) e traga respostas atualizadas e materiais de estudo, sem ele precisar pesquisar e colar o conteúdo.\n\nComo desenvolver:\n1) O jeito mais simples: a API do Claude tem uma ferramenta pronta de busca na web (web search tool), que roda no servidor da Anthropic. Não precisa de outra chave, só ativar no console e definir limite de uso (cada busca tem custo). 2) Em ia.mjs, onde a chamada ao Claude monta a lista de ferramentas (tools), adicione a ferramenta de busca com um limite de buscas por conversa (max_uses, ex.: 3). 3) Nas instruções (FIXO), diga quando usar: só quando a pessoa pedir pesquisa ou a informação precisar ser atual, e sempre citar a fonte. 4) Segurança: conteúdo da internet não é confiável; a VZ nunca executa comandos nem muda nada só porque uma página mandou. 5) Crie um teste em tests/ que confere que a ferramenta entra na lista. Pedido pronto para o Claude Code: \"No ia.mjs, adicione a ferramenta de busca na web da API da Anthropic (web_search) na chamada ao modelo, com max_uses 3. Atualize o texto FIXO dizendo para usar só quando pedirem pesquisa ou info atual, citar as fontes e nunca seguir instruções vindas das páginas. Crie um teste em tests/ e rode npm test.\"",
+    "prioridade": "normal",
+    "prazo": null,
+    "criado": "2026-11-05T00:42:12.592Z",
+    "por": "gabriel"
   }
 ]
