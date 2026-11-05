@@ -38,6 +38,7 @@ Painel interno da VZ Soluções em Tecnologia (Gabriel Vanzella, devs Derik e Ma
 4. **Avatar 3D com a boca mexendo**: depende do Gabriel criar a Sabrina no VRoid Studio (grátis) e salvar em `public/vz/sabrina.vrm`; depois three.js + @pixiv/three-vrm com a boca ligada ao volume da voz.
 5. **WhatsApp no celular da empresa** (cartão 8): quando o Gabriel desconectar o número do ContabIA.
 6. Conferir a doca da conversa no celular (390px).
+7. **Central em produção (pedido em 04/11, não feito):** hoje ela só roda no PC (127.0.0.1) porque guarda conversas, notas pessoais, senhas e a chave do Claude. Antes de pôr na internet, decidir com o Gabriel: onde roda (VPS com Node, ou este PC ligado o tempo todo com Tailscale), HTTPS, uma porta de entrada protegida (Cloudflare Access ou Tailscale), backup de `dados/` e a chave do Claude só no servidor. Nunca no `public_html` do site.
 
 ## Agente da noite (regras para o agente agendado na nuvem)
 
