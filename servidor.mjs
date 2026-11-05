@@ -3,9 +3,10 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import dns from 'node:dns/promises';
 import Anthropic from '@anthropic-ai/sdk';
 import { conversar, historico, novaConversa, todosProjetos, executarAcao, listaEstudos, tarefas, memorias, dicas, dicaProjeto, acatarDica, registrar, atividades } from './ia.mjs';
-import { entrar, quemE, sair, trocarSenha, marcarVisto, definirVersao, cookieSessao, cookieApagar } from './auth.mjs';
+import { entrar, quemE, sair, trocarSenha, marcarVisto, definirVersao, encerrarSessoes, configurarEmergencia, removerEmergencia, statusEmergencia, recuperar, cookieSessao, cookieApagar } from './auth.mjs';
 
 const PORTA = Number(process.env.PORTA || 8790);
 const ESTUDOS = path.join('conteudo', 'estudos');
@@ -27,6 +28,44 @@ const canalValido = (c) => ['geral', 'estudos'].includes(c);
 const slugValido = (s) => /^[a-z0-9-]+$/.test(s || '');
 
 
+// ---- segurança: senha de emergência ----
+const SEG = path.join('dados', 'seguranca.jsonl'); // registro privado, fora do git; nunca aparece no histórico da equipe
+function registrarSeguranca(usuario, tipo, req, extra = {}) {
+  fs.mkdirSync('dados', { recursive: true });
+  fs.appendFileSync(SEG, JSON.stringify({ data: new Date().toISOString(), usuario, tipo, ip: req.socket.remoteAddress, ...extra }) + '\n');
+}
+const enderecoPrivado = (ip) => /^(0\.|10\.|127\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.)/.test(ip) || ip === '::1' || /^(fc|fd|fe80|::ffff:)/i.test(ip);
+// Aviso para a pessoa de confiança (ex.: tópico do ntfy.sh). Só endereços públicos, sem seguir redirecionamentos.
+async function enviarAviso(url, texto) {
+  const enderecos = await dns.lookup(new URL(url).hostname, { all: true });
+  if (!enderecos.length || enderecos.some((e) => enderecoPrivado(e.address))) throw new Error('o endereço de aviso não é público');
+  const r = await fetch(url, { method: 'POST', body: texto, headers: { 'Content-Type': 'text/plain; charset=utf-8', Title: 'Alerta VZ' }, signal: AbortSignal.timeout(6000), redirect: 'error' });
+  if (!r.ok) throw new Error(`aviso recusado (${r.status})`);
+}
+async function alertaEmergencia(r, req) {
+  const { avisoUrl, acoes } = r.coacao;
+  if (acoes.encerrarSessoes) encerrarSessoes(r.usuario, r.token);
+  registrarSeguranca(r.usuario, 'emergencia', req);
+  if (acoes.avisar && avisoUrl) {
+    const quando = new Date().toLocaleString('pt-BR');
+    await enviarAviso(avisoUrl, `Alerta de emergência na Central da VZ: acesso com a senha de emergência (${r.usuario}) em ${quando}.`)
+      .catch((e) => registrarSeguranca(r.usuario, 'aviso_falhou', req, { motivo: String(e.message).slice(0, 120) }));
+  }
+}
+// Quem entrou com a senha de emergência vê um painel vazio que parece normal: sem dados, conversas, notas nem ações.
+function respostaDeCoacao(req, res, rota, eu) {
+  if (rota === '/api/sair') { sair(eu.token); res.setHeader('Set-Cookie', cookieApagar); return json(res, { ok: true }); }
+  if (req.method === 'GET') {
+    if (rota === '/api/eu') return json(res, { usuario: eu.usuario, nome: eu.nome, papel: eu.papel, trocarSenha: false, vistos: eu.vistos, versao: eu.versao });
+    if (rota === '/api/dicas') return json(res, {});
+    if (rota.startsWith('/api/estudos/')) return json(res, { erro: 'não encontrado' }, 404);
+    if (['/api/tarefas', '/api/projetos', '/api/memoria', '/api/historico', '/api/estudos', '/api/conversa'].includes(rota)) return json(res, []);
+    return json(res, { erro: 'Indisponível no momento.' }, 503);
+  }
+  if (rota === '/api/versao' || rota === '/api/visto') return json(res, { ok: true });
+  return json(res, { erro: 'Indisponível no momento. Tente de novo mais tarde.' }, 503); // inclui trocar senha, conversar e qualquer ação
+}
+
 async function api(req, res, url) {
   const rota = url.pathname;
   if (req.method === 'GET' && rota === '/api/estado') return json(res, { temChave: Boolean(process.env.ANTHROPIC_API_KEY), nomeIA: process.env.NOME_IA || 'VZ', vozPremium: vozPremium(), avatares: avatares() });
@@ -37,13 +76,17 @@ async function api(req, res, url) {
     if (typeof usuario !== 'string' || typeof senha !== 'string') return json(res, { erro: 'Preencha usuário e senha.' }, 400);
     const r = entrar(usuario.trim().toLowerCase(), senha);
     if (r.erro) { registrar({ usuario: usuario.trim().toLowerCase() }, "login_falhou", "Tentativa de login recusada"); return json(res, { erro: r.erro }, 401); }
-    registrar({ usuario: r.usuario }, 'login', 'Entrou na central');
+    registrar({ usuario: r.usuario }, 'login', 'Entrou na central'); // na emergência também aparece como um login comum
     res.setHeader('Set-Cookie', cookieSessao(r.token));
+    if (r.coacao) alertaEmergencia(r, req).catch(() => {});
     return json(res, { ok: true });
   }
   const eu = quemE(req);
   if (!eu) return json(res, { erro: 'Faça login.' }, 401);
-  if (req.method === 'GET' && rota === '/api/eu') return json(res, { usuario: eu.usuario, nome: eu.nome, papel: eu.papel, trocarSenha: eu.trocarSenha, vistos: eu.vistos, versao: eu.versao });
+  if (eu.modo === 'coacao') return respostaDeCoacao(req, res, rota, eu);
+  // Depois de um alerta, a conta só destrava com o código de recuperação
+  if (eu.modo === 'recuperacao' && !['/api/eu', '/api/sair', '/api/recuperar'].includes(rota)) return json(res, { erro: 'Confirme o código de recuperação para continuar.', recuperacao: true }, 403);
+  if (req.method === 'GET' && rota === '/api/eu') return json(res, { usuario: eu.usuario, nome: eu.nome, papel: eu.papel, trocarSenha: eu.trocarSenha, vistos: eu.vistos, versao: eu.versao, modo: eu.modo === 'recuperacao' ? 'recuperacao' : undefined });
   if (req.method === 'POST' && rota === '/api/versao') {
     const { versao } = await corpo(req);
     if (!definirVersao(eu.usuario, versao)) return json(res, { erro: 'versão inválida' }, 400);
@@ -63,7 +106,27 @@ async function api(req, res, url) {
     if (!r.erro) registrar(eu, 'senha_trocada', 'Trocou a própria senha');
     return r.erro ? json(res, r, 400) : json(res, r);
   }
+  if (req.method === 'POST' && rota === '/api/recuperar') {
+    if (eu.modo !== 'recuperacao') return json(res, { erro: 'Não há alerta ativo.' }, 400);
+    const { codigo } = await corpo(req);
+    const r = recuperar(eu.usuario, codigo);
+    registrarSeguranca(eu.usuario, r.ok ? 'recuperacao_ok' : 'recuperacao_falhou', req);
+    return r.erro ? json(res, r, 400) : json(res, r);
+  }
   if (eu.trocarSenha) return json(res, { erro: 'Troque a senha provisória antes de continuar.' }, 403);
+  if (req.method === 'GET' && rota === '/api/emergencia') return json(res, statusEmergencia(eu.usuario));
+  if (req.method === 'POST' && rota === '/api/emergencia') {
+    const { atual, emergencia, avisoUrl, encerrarSessoes: enc } = await corpo(req);
+    const r = configurarEmergencia(eu.usuario, atual, emergencia, { avisoUrl, encerrarSessoes: enc !== false });
+    registrarSeguranca(eu.usuario, r.ok ? 'emergencia_configurada' : 'emergencia_recusada', req); // só no registro privado, não no histórico da equipe
+    return r.erro ? json(res, r, 400) : json(res, r);
+  }
+  if (req.method === 'POST' && rota === '/api/emergencia/remover') {
+    const { atual } = await corpo(req);
+    const r = removerEmergencia(eu.usuario, atual);
+    registrarSeguranca(eu.usuario, r.ok ? 'emergencia_removida' : 'emergencia_recusada', req);
+    return r.erro ? json(res, r, 400) : json(res, r);
+  }
 
   if (req.method === 'GET' && rota === '/api/projetos') return json(res, todosProjetos());
   if (req.method === 'POST' && rota === '/api/projetos/situacao') {

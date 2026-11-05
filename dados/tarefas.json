@@ -487,5 +487,38 @@
     "detalhe": "Quando não consegue, ela diz o que falta, registra em sugerir_melhoria_central com o campo como_desenvolver (onde mexer, padrão e pedido pronto para o Claude Code) e avisa.",
     "criado": "2026-11-05T00:22:25.039Z",
     "por": "gabriel"
+  },
+  {
+    "id": 55,
+    "titulo": "Centralizar o GitHub: trazer os repositórios da conta GabrielVanzella para a gabrielvanzella1",
+    "projeto": "central-vz",
+    "coluna": "a fazer",
+    "detalhe": "Contas: gabrielvanzella (antiga, públicos: bomba-cloud, ayran, EmuladorCompleto, scante-admin, teste_ubuntu, myTrip, delivery_VZ, bandMusicauth, BandMusic, projeto_padrao, conversorMoedas) → gabrielvanzella1. Jeito seguro: Settings > Transfer ownership em cada repositório (mantém histórico, estrelas e redireciona o link antigo). Antes, conferir os privados da conta antiga e atualizar os remotes locais (git remote set-url). Prioridade a definir pelo Gabriel.",
+    "prioridade": "normal",
+    "prazo": null,
+    "criado": "2026-11-05T00:32:25.617Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 56,
+    "titulo": "Sala de agentes: ver os agentes trabalhando de forma visual (bonecos)",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "detalhe": "Tela com um escritório em 2D onde cada agente é um boneco: na mesa digitando quando está trabalhando, dormindo quando parado, com balão do cartão atual e link do PR. Lê o estado do agente da noite (PRs abertos no GitHub, status das rotinas).",
+    "prioridade": "normal",
+    "prazo": null,
+    "criado": "2026-11-05T00:32:25.624Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 57,
+    "titulo": "Ponte de modelo: trocar entre Claude e a IA local do i9 por comando",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "detalhe": "Um comando (\"usa o i9\" / \"volta pro Claude\") troca o modelo das conversas. O i9 serve um endpoint compatível (Ollama ou llama.cpp) pela rede privada. Limite: com 4 GB de VRAM só cabem modelos pequenos (3B a 8B quantizados), bons para resumo e conversa simples, fracos para usar ferramentas e programar.",
+    "prioridade": "normal",
+    "prazo": null,
+    "criado": "2026-11-05T00:32:25.632Z",
+    "por": "gabriel"
   }
 ]

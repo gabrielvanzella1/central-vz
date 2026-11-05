@@ -59,3 +59,28 @@ test('"já vi" não repete a mesma chave', () => {
   auth.marcarVisto('fabio', 'tour'); auth.marcarVisto('fabio', 'tour');
   assert.deepEqual(auth.lerUsuarios().find((u) => u.usuario === 'fabio').vistos, ['tour']);
 });
+
+test('senha de emergência: entra em modo coação, tranca a conta e só destrava com o código', () => {
+  auth.criarUsuario({ usuario: 'chefe', nome: 'Chefe', papel: 'dono', email: 'chefe@exemplo.com' });
+  const prov = auth.lerUsuarios().find((u) => u.usuario === 'chefe');
+  prov.trocarSenha = false;
+  // define a senha normal conhecida
+  const lista = auth.lerUsuarios(); lista.find((u) => u.usuario === 'chefe').hash = auth.gerarHash('senhanormal1');
+  fs.writeFileSync(path.join('dados', 'usuarios.json'), JSON.stringify(lista));
+  assert.match(auth.configurarEmergencia('chefe', 'errada', 'socorro123').erro, /incorreta/);
+  assert.match(auth.configurarEmergencia('chefe', 'senhanormal1', 'senhanormal1').erro, /diferente/);
+  assert.match(auth.configurarEmergencia('chefe', 'senhanormal1', 'socorro123', { avisoUrl: 'http://127.0.0.1/x' }).erro, /https/);
+  const { codigo } = auth.configurarEmergencia('chefe', 'senhanormal1', 'socorro123', { avisoUrl: 'https://ntfy.sh/teste-vz' });
+  assert.match(codigo, /^[A-Z2-9]{4}(-[A-Z2-9]{4}){3}$/);
+  assert.ok(!JSON.stringify(auth.lerUsuarios()).includes('socorro123'));
+  const req = (t) => ({ headers: { cookie: `vz_sessao=${t}` } });
+  const c = auth.entrar('chefe@exemplo.com', 'socorro123');
+  assert.equal(auth.quemE(req(c.token)).modo, 'coacao');
+  const n = auth.entrar('chefe', 'senhanormal1');
+  assert.equal(auth.quemE(req(n.token)).modo, 'recuperacao', 'depois do alerta a senha normal não abre tudo');
+  assert.match(auth.recuperar('chefe', 'AAAA-AAAA-AAAA-AAAA').erro, /incorreto/);
+  const r = auth.recuperar('chefe', codigo.toLowerCase());
+  assert.ok(r.ok && r.codigoNovo !== codigo);
+  assert.equal(auth.quemE(req(n.token)).modo, undefined);
+  assert.equal(auth.quemE(req(c.token)), null, 'a sessão de coação cai');
+});

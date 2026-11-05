@@ -1,3 +1,9 @@
 {"data":"2026-11-04T22:52:45.447Z","usuario":"gabriel","tipo":"senha_trocada","descricao":"Trocou a própria senha"}
 {"data":"2026-11-04T23:09:34.025Z","usuario":"gabriel","tipo":"login","descricao":"Entrou na central"}
 {"data":"2026-11-04T23:49:46.246Z","usuario":"gabriel","tipo":"cartao_criado","descricao":"#46 Permitir escolher a voz da VZ na conversa por voz","projeto":"central-vz","coluna":"ideias"}
+{"data":"2026-11-05T00:32:25.581Z","usuario":"gabriel","tipo":"projeto_situacao","descricao":"ContabIA: central","projeto":"ContabIA"}
+{"data":"2026-11-05T00:32:25.601Z","usuario":"gabriel","tipo":"projeto_situacao","descricao":"videoia: central","projeto":"videoia"}
+{"data":"2026-11-05T00:32:25.612Z","usuario":"gabriel","tipo":"projeto_situacao","descricao":"projetoscante: central","projeto":"projetoscante"}
+{"data":"2026-11-05T00:32:25.620Z","usuario":"gabriel","tipo":"cartao_criado","descricao":"#55 Centralizar o GitHub: trazer os repositórios da conta GabrielVanzella para a gabrielvanzella1","projeto":"central-vz","coluna":"a fazer"}
+{"data":"2026-11-05T00:32:25.627Z","usuario":"gabriel","tipo":"cartao_criado","descricao":"#56 Sala de agentes: ver os agentes trabalhando de forma visual (bonecos)","projeto":"central-vz","coluna":"ideias"}
+{"data":"2026-11-05T00:32:25.634Z","usuario":"gabriel","tipo":"cartao_criado","descricao":"#57 Ponte de modelo: trocar entre Claude e a IA local do i9 por comando","projeto":"central-vz","coluna":"ideias"}

@@ -5,6 +5,10 @@ const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const api = async (rota) => {
   const r = await fetch(rota);
   if (r.status === 401) { telaLogin(); throw new Error('sem login'); }
+  if (r.status === 403) {
+    const d = await r.clone().json().catch(() => ({}));
+    if (d.recuperacao) { telaRecuperar(); throw new Error('recuperacao'); }
+  }
   return r.json();
 };
 const postar = async (rota, dados) => {
@@ -24,11 +28,12 @@ chipUsuario.addEventListener('click', () => {
   document.querySelector('.menu-conta')?.remove();
   const m = document.createElement('div');
   m.className = 'menu-conta';
-  m.innerHTML = '<button type="button" data-a="senha">Trocar senha</button><button type="button" data-a="tour">Rever o tour</button><button type="button" data-a="sair">Sair</button>';
+  m.innerHTML = '<button type="button" data-a="senha">Trocar senha</button><button type="button" data-a="emergencia">Senha de emergência</button><button type="button" data-a="tour">Rever o tour</button><button type="button" data-a="sair">Sair</button>';
   chipUsuario.after(m);
   m.addEventListener('click', async (e) => {
     const a = e.target.dataset.a; m.remove();
     if (a === 'senha') telaSenha(false);
+    if (a === 'emergencia') telaEmergencia();
     if (a === 'tour') { location.hash = '#/'; setTimeout(iniciarTour, 100); }
     if (a === 'sair') { await postar('/api/sair'); eu = null; mostrarUsuario(); telaLogin(); }
   });
@@ -97,6 +102,83 @@ function telaSenha(obrigatoria) {
   });
 }
 
+// ---------------- senha de emergência ----------------
+// Duas senhas no mesmo e-mail: a normal abre tudo; a de emergência (só sob ameaça) abre um painel vazio, tranca a conta e avisa alguém.
+function mostrarCodigo(codigo, titulo, aoContinuar) {
+  chatAtivo?.parar();
+  tela.innerHTML = `
+    <div class="cartao-acesso largo">
+      <h1>${esc(titulo)}</h1>
+      <p>Este é o seu <b>código de recuperação</b>. Ele aparece <b>só agora</b>. Escreva num papel e guarde fora do computador (carteira, cofre). Sem ele, depois de um alerta a central não destrava.</p>
+      <div class="codigo-recuperacao" translate="no">${esc(codigo)}</div>
+      <label class="linha"><input type="checkbox" class="guardei" /> Anotei o código em um lugar seguro, fora do computador</label>
+      <button class="btn continuar" type="button" disabled>Continuar</button>
+    </div>`;
+  const ok = tela.querySelector('.guardei');
+  const bt = tela.querySelector('.continuar');
+  ok.addEventListener('change', () => { bt.disabled = !ok.checked; });
+  bt.addEventListener('click', aoContinuar);
+}
+
+function telaRecuperar() {
+  chatAtivo?.parar();
+  tela.innerHTML = `
+    <form class="cartao-acesso">
+      <h1>Confirme que está tudo bem</h1>
+      <p>Um alerta de emergência foi ativado nesta conta. Digite o seu <b>código de recuperação</b> para voltar ao normal.</p>
+      <label>Código de recuperação<input name="codigo" autocomplete="off" autocapitalize="characters" required /></label>
+      <p class="erro-form" role="alert"></p>
+      <button class="btn" type="submit">Destravar</button>
+      <button class="btn btn-claro sair" type="button">Sair</button>
+    </form>`;
+  const f = tela.querySelector('form');
+  f.querySelector('.sair').addEventListener('click', async () => { await postar('/api/sair'); eu = null; mostrarUsuario(); telaLogin(); });
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const r = await postar('/api/recuperar', { codigo: f.codigo.value });
+    if (!r.ok) { f.querySelector('.erro-form').textContent = r.dados.erro || 'Não foi possível destravar.'; return; }
+    mostrarCodigo(r.dados.codigoNovo, 'Novo código de recuperação', () => { iniciarSessao(); });
+  });
+}
+
+async function telaEmergencia() {
+  chatAtivo?.parar();
+  const st = await api('/api/emergencia');
+  const quando = st.desde ? new Date(st.desde).toLocaleDateString('pt-BR') : '';
+  tela.innerHTML = `
+    <form class="cartao-acesso largo">
+      <h1>Senha de emergência</h1>
+      <p>É uma <b>segunda senha</b> para o mesmo e-mail, para usar <b>só se alguém te obrigar a abrir a central</b>. Quem entra com ela vê um painel vazio, que parece normal. Em silêncio, a central tranca a sua conta, encerra as outras sessões e, se você configurar, avisa uma pessoa de confiança. Nada é apagado.</p>
+      <p><b>Nunca use essa senha no dia a dia</b>, não deixe o navegador salvá-la e nunca a diga para a VZ no chat. Para destrancar depois, você vai precisar de um <b>código de recuperação</b>, que aparece uma única vez.</p>
+      ${st.configurada ? `<p class="ok-dica">✓ Já configurada em ${esc(quando)}${st.aviso ? ` · avisa para ${esc(st.aviso)}` : ' · sem aviso externo'}. Preencha abaixo para trocar.</p>` : ''}
+      <label>Sua senha normal (para confirmar)<input name="atual" type="password" autocomplete="current-password" required /></label>
+      <label>Senha de emergência<input name="emerg" type="password" autocomplete="off" minlength="8" required /></label>
+      <label>Repita a senha de emergência<input name="repete" type="password" autocomplete="off" minlength="8" required /></label>
+      <label>Endereço para avisar alguém (opcional)<input name="url" type="url" autocomplete="off" placeholder="https://ntfy.sh/um-nome-longo-e-secreto" /></label>
+      <small>Pode ser um tópico do ntfy.sh: a pessoa de confiança instala o app ntfy no celular e assina o tópico. Só enviamos “alerta de emergência”, sem nenhum dado.</small>
+      <label class="linha"><input type="checkbox" name="encerrar" checked /> Encerrar as outras sessões desta conta no alerta</label>
+      <p class="erro-form" role="alert"></p>
+      <button class="btn" type="submit">${st.configurada ? 'Trocar senha de emergência' : 'Ativar senha de emergência'}</button>
+      ${st.configurada ? '<button class="btn btn-claro remover" type="button">Remover</button>' : ''}
+      <a href="#/" class="cancelar">Voltar</a>
+    </form>`;
+  const f = tela.querySelector('form');
+  const erro = f.querySelector('.erro-form');
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (f.emerg.value !== f.repete.value) { erro.textContent = 'As duas senhas de emergência não são iguais.'; return; }
+    const r = await postar('/api/emergencia', { atual: f.atual.value, emergencia: f.emerg.value, avisoUrl: f.url.value.trim(), encerrarSessoes: f.encerrar.checked });
+    if (!r.ok) { erro.textContent = r.dados.erro || 'Não foi possível ativar.'; return; }
+    mostrarCodigo(r.dados.codigo, 'Guarde o código de recuperação', () => { location.hash = '#/'; rotear(); });
+  });
+  f.querySelector('.remover')?.addEventListener('click', async () => {
+    if (!f.atual.value) { erro.textContent = 'Digite a sua senha normal para remover.'; return; }
+    const r = await postar('/api/emergencia/remover', { atual: f.atual.value });
+    if (!r.ok) { erro.textContent = r.dados.erro || 'Não foi possível remover.'; return; }
+    location.hash = '#/'; rotear();
+  });
+}
+
 async function iniciarSessao() {
   const r = await fetch('/api/eu');
   if (!r.ok) { telaLogin(); return; }
@@ -104,7 +186,7 @@ async function iniciarSessao() {
   estado.nomeIA = nomeDaVersao();
   document.body.classList.remove('sem-sessao');
   mostrarUsuario();
-  if (eu.trocarSenha) telaSenha(true); else rotear();
+  if (eu.modo === 'recuperacao') telaRecuperar(); else if (eu.trocarSenha) telaSenha(true); else rotear();
 }
 
 // ---------------- menu do celular ----------------
@@ -812,6 +894,7 @@ function iniciarTour() {
 // ---------------- roteamento ----------------
 async function rotear() {
   if (!eu) return;
+  if (eu.modo === 'recuperacao') { telaRecuperar(); return; }
   if (eu.trocarSenha) { telaSenha(true); return; }
   chatAtivo?.parar(); chatAtivo = null; aoMudarVersao = () => {};
   retomarEscutaNome();

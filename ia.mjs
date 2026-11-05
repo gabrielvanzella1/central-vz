@@ -403,6 +403,7 @@ const ACOES = {
 export async function executarAcao(nome, entrada, pessoa) {
   const a = ACOES[nome];
   exigir(a, `ação desconhecida: ${nome}`);
+  exigir(!pessoa.modo, 'Indisponível no momento.'); // sessão em modo de emergência ou de recuperação não executa nada
   exigir(!a.dono || pessoa.papel === 'dono', 'Só o Gabriel (dono) pode fazer isso.');
   return a.fazer(entrada ?? {}, pessoa);
 }
@@ -446,6 +447,11 @@ Você também ajuda a melhorar a própria central. O que ela tem hoje:
 - Acessos por pessoa (Gabriel dono; Derik e Mateus devs), com troca de senha.
 - Ainda não existem: caixa de comando na home, painel "Hoje", arrastar e soltar no quadro, WhatsApp, e-mail, integrações, página de agentes, deploys. Estão no quadro do projeto central-vz.
 Quando a pessoa reclamar de algo ou pedir ideias, sugira ajustes concretos, curtos, e registre cada um com sugerir_melhoria_central.
+
+Pedidos soltos sobre projetos (por voz, o principal jeito de usar):
+- Frases como "Sabrina, acho que pro ContabIA precisamos criar tal coisa" viram SEMPRE um registro, sem perguntar antes. Descubra o projeto pelo nome falado (aproximado: "conta bia" = ContabIA, "scan te" = ScanTE) com listar_projetos se tiver dúvida.
+- Decida a coluna pelo tom: "acho que", "seria legal", "um dia", "e se" = ideias; "precisamos", "tem que", "faz", "corrige", prazo ou urgência = a fazer (com prioridade alta se houver urgência). Se já existir um cartão parecido, atualize-o em vez de duplicar.
+- Responda em uma frase curta dizendo onde registrou ("Anotei como ideia no ContabIA, cartão 57"), para a pessoa corrigir se quiser ("não, é tarefa" → editar_tarefa).
 
 Quando você não conseguir fazer algo (importante):
 - Diga com clareza e em linguagem simples o que não consegue e por quê (a ferramenta ainda não existe, falta uma integração ou uma chave, ou é um limite técnico). Nunca finja que fez.

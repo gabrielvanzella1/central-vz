@@ -215,6 +215,10 @@ main:focus, main:focus-visible { outline: none; }
 .cartao-acesso label { display: grid; gap: .3rem; font-weight: 600; font-size: .9rem; }
 .cartao-acesso input { padding: .75rem 1rem; border-radius: 14px; border: 1.5px solid var(--borda); font-weight: 400; }
 .cartao-acesso .btn { justify-content: center; }
+.cartao-acesso.largo { max-width: 560px; }
+.cartao-acesso small { color: var(--tinta-2); }
+.cartao-acesso .linha { display: flex; align-items: center; gap: .5rem; font-weight: 500; }
+.codigo-recuperacao { padding: 1rem; text-align: center; font-family: ui-monospace, Consolas, monospace; font-size: 1.5rem; font-weight: 700; letter-spacing: .12em; border: 2px dashed #F59E0B; border-radius: 16px; background: #FFFBEB; user-select: all; }
 .cartao-acesso .cancelar { text-align: center; }
 .erro-form { margin: 0; min-height: 1.2em; color: #B91C1C; font-weight: 600; font-size: .9rem; }
 .topo-dir { position: relative; }
