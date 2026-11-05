@@ -244,3 +244,17 @@ main:focus, main:focus-visible { outline: none; }
   .marca span { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* Doca: a conversa acompanha você em todas as telas */
+.doca-vz { position: fixed; right: 16px; bottom: 16px; z-index: 40; width: min(400px, calc(100vw - 32px)); }
+.doca-vz[hidden] { display: none; }
+.doca-vz .conversa { display: flex; flex-direction: column-reverse; gap: .5rem; }
+.doca-vz .painel-voz { position: static; display: flex; align-items: center; gap: .75rem; padding: .5rem 3.25rem .5rem .6rem; border-radius: 999px; box-shadow: 0 16px 40px -16px rgba(0, 40, 160, .6); }
+.doca-vz .ajustes, .doca-vz .troca-avatar { display: none; }
+.doca-vz .painel-voz .orbe, .doca-vz .painel-voz .orbe.com-avatar { width: 52px; height: 52px; flex: none; box-shadow: none; }
+.doca-vz .painel-voz .estado-voz { margin: 0; font-size: .9rem; }
+.doca-vz .chat { min-height: 0; box-shadow: 0 24px 60px -24px rgba(0, 40, 160, .5); }
+.doca-vz .mensagens { max-height: 42vh; }
+.doca-vz.min .chat { display: none; }
+.doca-vz .doca-abrir { position: absolute; right: .6rem; bottom: .75rem; width: 2.5rem; height: 2.5rem; border: 0; border-radius: 50%; color: #fff; font-size: 1.1rem; cursor: pointer; background: rgba(255, 255, 255, .18); }
+.doca-vz .doca-abrir:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }

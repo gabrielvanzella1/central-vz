@@ -55,7 +55,7 @@ function ajudaUmaVez(chave, html) {
 }
 
 function telaLogin() {
-  chatAtivo?.parar();
+  chatAtivo?.parar(); encerrarConversa();
   eu = null; mostrarUsuario();
   document.body.classList.add('sem-sessao');
   tela.innerHTML = `
@@ -77,7 +77,8 @@ function telaLogin() {
 }
 
 function telaSenha(obrigatoria) {
-  chatAtivo?.parar();
+  if (chatAtivo !== chatGeral) chatAtivo?.parar();
+  soltarConversa(false);
   tela.innerHTML = `
     <form class="cartao-acesso">
       <h1>${obrigatoria ? 'Crie a sua senha' : 'Trocar senha'}</h1>
@@ -121,7 +122,7 @@ function mostrarCodigo(codigo, titulo, aoContinuar) {
 }
 
 function telaRecuperar() {
-  chatAtivo?.parar();
+  chatAtivo?.parar(); encerrarConversa();
   tela.innerHTML = `
     <form class="cartao-acesso">
       <h1>Confirme que está tudo bem</h1>
@@ -142,7 +143,7 @@ function telaRecuperar() {
 }
 
 async function telaEmergencia() {
-  chatAtivo?.parar();
+  soltarConversa(false);
   const st = await api('/api/emergencia');
   const quando = st.desde ? new Date(st.desde).toLocaleDateString('pt-BR') : '';
   tela.innerHTML = `
@@ -337,7 +338,7 @@ function bip() {
   } catch { /* sem áudio */ }
 }
 function retomarEscutaNome() {
-  if (!Reconhecimento || !escutaNomeLigada() || !eu) return;
+  if (!Reconhecimento || !escutaNomeLigada() || !eu || chatGeral?.emVoz()) return;
   escutaPausada = false;
   if (!escutaNome) {
     escutaNome = new Reconhecimento();
@@ -351,7 +352,7 @@ function retomarEscutaNome() {
       bip();
       trocarVersao(versaoPeloNome(frase));
       pararEscutaNome();
-      if (location.hash.startsWith('#/conversa') && chatAtivo?.comecar) { chatAtivo.comecar(pedido); return; }
+      if (chatGeral) { abrirDoca(); chatGeral.comecar(pedido); return; } // atende onde você estiver
       guardar('vz-chamado', pedido); guardar('vz-chamado-em', String(Date.now()));
       location.hash = '#/conversa';
     };
@@ -528,7 +529,7 @@ function criarChat({ raiz, canal, estudo = null, orbe = null, rotuloEstado = nul
     } finally {
       ocupado = false;
       if (modoVoz || falarSempre()) alimentarFala('', true);
-      if (abrirDepois && location.hash !== abrirDepois) { await filaAudio; location.hash = abrirDepois; return; }
+      if (abrirDepois && location.hash !== abrirDepois) location.hash = abrirDepois; // a conversa vai junto
       if (pendente) { const p = pendente; pendente = null; enviar(p); } else quandoTerminarDeFalar();
     }
   }
@@ -548,7 +549,7 @@ function criarChat({ raiz, canal, estudo = null, orbe = null, rotuloEstado = nul
     msgs.forEach((m) => bolha(m.papel, m.texto));
   });
   mudarEstado('', estado.temChave ? 'Toque para conversar' : 'Falta a chave do Claude');
-  return { alternarVoz, comecar, interromper, parar: () => { modoVoz = false; reconhecedor?.abort(); calar(); retomarEscutaNome(); } };
+  return { alternarVoz, comecar, interromper, emVoz: () => modoVoz, parar: () => { modoVoz = false; reconhecedor?.abort(); calar(); retomarEscutaNome(); } };
 }
 
 const htmlChat = (titulo, vazio) => `
@@ -622,13 +623,46 @@ async function home() {
       </a>
     </section>`;
   ligarTrocaAvatar();
-  tela.querySelector('.a-conversa .orbe').addEventListener('click', () => { guardar('vz-ouvir-ja', 'sim'); location.hash = '#/conversa'; });
+  tela.querySelector('.a-conversa .orbe').addEventListener('click', () => { soltarConversa(false); abrirDoca(); chatGeral?.alternarVoz(); });
   if (!jaViu('tour')) iniciarTour();
 }
 
+// A conversa geral é montada uma vez e acompanha você: na tela Conversa ocupa a página; nas outras fica na doca flutuante, sem parar a voz.
+let noConversa = null, chatGeral = null, vozesGeral = null;
+function doca() {
+  let d = document.querySelector('.doca-vz');
+  if (d) return d;
+  d = document.createElement('aside');
+  d.className = 'doca-vz min';
+  d.setAttribute('aria-label', 'Conversa');
+  d.innerHTML = '<button type="button" class="doca-abrir" aria-expanded="false" aria-label="Abrir ou fechar a conversa">▴</button>';
+  d.querySelector('.doca-abrir').addEventListener('click', () => (d.classList.contains('min') ? abrirDoca() : fecharDoca()));
+  document.body.append(d);
+  return d;
+}
+function abrirDoca() { const d = document.querySelector('.doca-vz'); if (!d) return; d.classList.remove('min'); d.querySelector('.doca-abrir').setAttribute('aria-expanded', 'true'); d.querySelector('.doca-abrir').textContent = '▾'; }
+function fecharDoca() { const d = document.querySelector('.doca-vz'); if (!d) return; d.classList.add('min'); d.querySelector('.doca-abrir').setAttribute('aria-expanded', 'false'); d.querySelector('.doca-abrir').textContent = '▴'; }
+function soltarConversa(naTela) {
+  if (!eu || eu.trocarSenha || eu.modo) return;
+  const d = doca();
+  if (!noConversa) montarConversa(d);
+  if (naTela) { tela.innerHTML = ''; tela.append(noConversa); d.hidden = true; } else { d.append(noConversa); d.hidden = false; }
+}
+function encerrarConversa() {
+  chatGeral?.parar(); document.querySelector('.doca-vz')?.remove();
+  chatGeral = null; noConversa = null; vozesGeral = null;
+}
 function conversa() {
-  tela.innerHTML = `
-    <div class="conversa">
+  soltarConversa(true);
+  if (lerGuardado('vz-ouvir-ja') === 'sim') { guardar('vz-ouvir-ja', ''); if (!chatGeral.emVoz()) chatGeral.alternarVoz(); }
+  const pedido = lerGuardado('vz-chamado');
+  if (pedido !== null && pedido !== undefined && lerGuardado('vz-chamado-em') > Date.now() - 15000) { guardar('vz-chamado-em', ''); chatGeral.comecar(pedido); }
+}
+function montarConversa(destino) {
+  const c = document.createElement('div');
+  c.className = 'conversa';
+  destino.append(c); // precisa estar na página para ligar a troca de aparência
+  c.innerHTML = `
       <aside class="painel-voz">
         <div class="avatar-wrap"><button type="button" class="orbe" aria-label="Ligar ou desligar a conversa por voz"></button>${trocaAvatarHTML()}</div>
         <p class="estado-voz"></p>
@@ -641,12 +675,11 @@ function conversa() {
           <p class="dica-voz" hidden>Para uma voz bem mais natural, abra a central no Microsoft Edge (vozes “Natural”).</p>
         </div>
       </aside>
-      ${htmlChat(`Conversa com <span data-nome-ia>${esc(estado.nomeIA)}</span>`, 'Toque na imagem e fale. Ex.: “anota uma ideia para o site da VZ” ou “quais projetos estão sem git?”')}
-    </div>`;
-  const raiz = tela.querySelector('.chat');
+      ${htmlChat(`Conversa com <span data-nome-ia>${esc(estado.nomeIA)}</span>`, 'Toque na imagem e fale. Ex.: “anota uma ideia para o site da VZ” ou “me leva para o quadro”')}`;
+  const raiz = c.querySelector('.chat');
   raiz.dataset.falar = 'nao';
-  const selVoz = tela.querySelector('.sel-voz');
-  const dicaVoz = tela.querySelector('.dica-voz');
+  const selVoz = c.querySelector('.sel-voz');
+  const dicaVoz = c.querySelector('.dica-voz');
   const preencherVozes = () => {
     const vs = vozesPt();
     const atual = usarPremium() ? 'premium' : (melhorVoz()?.name || '');
@@ -656,18 +689,22 @@ function conversa() {
   };
   preencherVozes(); speechSynthesis.onvoiceschanged = preencherVozes;
   selVoz.addEventListener('change', () => { guardar('vz-voz', selVoz.value); calar(); });
-  const vel = tela.querySelector('.sel-vel'); vel.value = ajustes.velocidade; vel.addEventListener('input', () => guardar('vz-velocidade', vel.value));
-  const selNome = tela.querySelector('.sel-nome');
+  const vel = c.querySelector('.sel-vel'); vel.value = ajustes.velocidade; vel.addEventListener('input', () => guardar('vz-velocidade', vel.value));
+  const selNome = c.querySelector('.sel-nome');
   selNome.checked = escutaNomeLigada();
   selNome.addEventListener('change', () => { guardar('vz-atender-nome', selNome.checked ? 'sim' : 'nao'); if (!selNome.checked) pararEscutaNome(); });
-  const int = tela.querySelector('.sel-int'); int.checked = ajustes.interromper; int.addEventListener('change', () => guardar('vz-interromper', int.checked ? 'sim' : 'nao'));
-  aoMudarVersao = preencherVozes; // a lista de vozes depende da versão (voz premium só na Sabrina)
-  ligarTrocaAvatar();
-  chatAtivo = criarChat({ raiz: tela.querySelector('.conversa'), canal: 'geral', orbe: tela.querySelector('.painel-voz .orbe'), rotuloEstado: tela.querySelector('.painel-voz .estado-voz') });
+  const int = c.querySelector('.sel-int'); int.checked = ajustes.interromper; int.addEventListener('change', () => guardar('vz-interromper', int.checked ? 'sim' : 'nao'));
+  vozesGeral = preencherVozes; // a lista de vozes depende da versão (voz premium só na Sabrina)
+  c.querySelectorAll('.troca-avatar button').forEach((b) => b.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (b.dataset.v === eu.versao) return;
+    const r = await postar('/api/versao', { versao: b.dataset.v });
+    if (r.ok) { eu.versao = b.dataset.v; atualizarAvatares(); }
+  }));
+  atualizarAvatares();
+  noConversa = c;
+  chatGeral = criarChat({ raiz: c, canal: 'geral', orbe: c.querySelector('.painel-voz .orbe'), rotuloEstado: c.querySelector('.painel-voz .estado-voz') });
   ligarNovaConversa(raiz, 'geral');
-  if (lerGuardado('vz-ouvir-ja') === 'sim') { guardar('vz-ouvir-ja', ''); chatAtivo.alternarVoz(); }
-  const pedido = lerGuardado('vz-chamado');
-  if (pedido !== null && pedido !== undefined && lerGuardado('vz-chamado-em') > Date.now() - 15000) { guardar('vz-chamado-em', ''); chatAtivo.comecar(pedido); }
 }
 
 async function quadro() {
@@ -896,10 +933,12 @@ async function rotear() {
   if (!eu) return;
   if (eu.modo === 'recuperacao') { telaRecuperar(); return; }
   if (eu.trocarSenha) { telaSenha(true); return; }
-  chatAtivo?.parar(); chatAtivo = null; aoMudarVersao = () => {};
+  if (chatAtivo !== chatGeral) chatAtivo?.parar();
+  chatAtivo = null; aoMudarVersao = () => vozesGeral?.();
   retomarEscutaNome();
   document.querySelector('.tour-fundo')?.remove();
   const [area, sub] = location.hash.replace(/^#\/?/, '').split('/');
+  if (area !== 'conversa') soltarConversa(false); // a conversa vai para a doca e continua
   document.querySelector('.voltar').hidden = !area;
   const telas = { '': home, conversa, quadro, projetos, estudos: () => estudos(sub), memoria, historico: historicoTela };
   await (telas[area] || home)();
@@ -907,7 +946,7 @@ async function rotear() {
   scrollTo(0, 0);
 }
 addEventListener('hashchange', rotear);
-addEventListener('keydown', (e) => { if (e.key === 'Escape') chatAtivo?.interromper?.(); });
+addEventListener('keydown', (e) => { if (e.key === 'Escape') (chatAtivo || chatGeral)?.interromper?.(); });
 estado = await (await fetch('/api/estado')).json();
 estado.nomeBase = estado.nomeIA; // "VZ": o nome da versão normal
 iniciarSessao();
