@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="VZ Soluções em Tecnologia">
+  <defs>
+    <radialGradient id="g" cx="35%" cy="30%" r="80%">
+      <stop offset="0" stop-color="#1157EA"/>
+      <stop offset="1" stop-color="#0A2D89"/>
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="32" r="32" fill="url(#g)"/>
+  <rect x="17" y="17" width="30" height="12" rx="3" fill="#fff"/>
+  <rect x="17" y="33" width="30" height="12" rx="3" fill="#fff"/>
+  <circle cx="22.5" cy="23" r="2" fill="#0B40CE"/>
+  <circle cx="28.5" cy="23" r="2" fill="#0B40CE"/>
+  <circle cx="22.5" cy="39" r="2" fill="#0B40CE"/>
+  <circle cx="28.5" cy="39" r="2" fill="#0B40CE"/>
+</svg>

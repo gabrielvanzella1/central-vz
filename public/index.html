@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Central da VZ</title>
+  <meta name="theme-color" content="#1157EA" />
+  <link rel="icon" href="logo.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topo">
+    <a href="#/" class="marca" aria-label="Central da VZ, início"><img src="logo-vz-claro.webp" alt="" width="902" height="421" /><span>Central</span></a>
+    <a href="#/" class="voltar" hidden>← Início</a>
+    <div class="topo-dir">
+      <button type="button" class="chip-usuario" id="usuario" title="Trocar de usuário"></button>
+      <button type="button" class="menu-btn" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu"><span></span></button>
+    </div>
+    <!-- Menu só no celular; no computador a navegação é pela home -->
+    <nav id="menu" aria-label="Áreas">
+      <a href="#/">Início</a><a href="#/conversa">Conversar</a><a href="#/quadro">Quadro</a><a href="#/projetos">Projetos</a><a href="#/estudos">Estudos</a><a href="#/memoria">Memória</a><a href="#/historico">Histórico</a>
+    </nav>
+  </header>
+
+  <main id="tela" tabindex="-1"></main>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous"></script>
+  <script src="app.js" type="module"></script>
+</body>
+</html>

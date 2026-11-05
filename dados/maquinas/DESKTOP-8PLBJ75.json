@@ -1,0 +1,427 @@
+{
+  "maquina": "DESKTOP-8PLBJ75",
+  "atualizado": "2026-11-04T22:46:39.415Z",
+  "raiz": "C:\\xampp\\htdocs",
+  "projetos": [
+    {
+      "nome": "active",
+      "pasta": "C:\\xampp\\htdocs\\active",
+      "descricao": "Sistema de Gestão de Ativos - Asset Management System: Sistema completo de gestão de ativos de TI para empresas de logística. Desenvolvido em PHP 7+ com arquitetura MVC padrão, banco de dados MySQL, e interface web responsiva.",
+      "git": true,
+      "remoto": "gabrielvanzella1/active1.0",
+      "alterados": 0,
+      "naoEnviados": 0,
+      "ultimoCommit": "2026-09-02"
+    },
+    {
+      "nome": "active2",
+      "pasta": "C:\\xampp\\htdocs\\active2",
+      "descricao": "Sistema de Gestão de Ativos - Asset Management System: Sistema completo de gestão de ativos de TI para empresas de logística. Desenvolvido em PHP 7+ com arquitetura MVC padrão, banco de dados MySQL, e interface web responsiva.",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "active3-main",
+      "pasta": "C:\\xampp\\htdocs\\active3-main",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "active4",
+      "pasta": "C:\\xampp\\htdocs\\active4",
+      "descricao": "Sistema de Gestão de Ativos - Asset Management System: Sistema completo de gestão de ativos de TI para empresas de logística. Desenvolvido em PHP 7+ com arquitetura MVC padrão, banco de dados MySQL, e interface web responsiva.",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "active4-main",
+      "pasta": "C:\\xampp\\htdocs\\active4-main",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "appemuladortelnet",
+      "pasta": "C:\\xampp\\htdocs\\appemuladortelnet",
+      "descricao": "📱 Emulador Telnet Android: App Android para conectar e interagir com servidores Telnet, com suporte a terminal emulado.",
+      "git": true,
+      "remoto": "GabrielVanzella/EmuladorCompleto",
+      "alterados": 0,
+      "naoEnviados": 0,
+      "ultimoCommit": "2026-10-29"
+    },
+    {
+      "nome": "autiactive",
+      "pasta": "C:\\xampp\\htdocs\\autiactive",
+      "descricao": "Sistema de Gestão de Ativos - Asset Management System: Sistema completo de gestão de ativos de TI para empresas de logística. Desenvolvido em PHP 7+ com arquitetura MVC padrão, banco de dados MySQL, e interface web responsiva.",
+      "git": true,
+      "remoto": "gabrielvanzella1/autiactive",
+      "alterados": 36,
+      "naoEnviados": 0,
+      "ultimoCommit": "2026-05-26"
+    },
+    {
+      "nome": "ayran",
+      "pasta": "C:\\xampp\\htdocs\\ayran",
+      "descricao": "minhaIA: Projeto de IA local/pessoal — ver [REQUIREMENTS.md](REQUIREMENTS.md) para o levantamento completo de requisitos, fases e stack técnica.",
+      "git": true,
+      "remoto": "gabrielvanzella1/ayran",
+      "alterados": 0,
+      "naoEnviados": 0,
+      "ultimoCommit": "2026-08-25"
+    },
+    {
+      "nome": "bkp",
+      "pasta": "C:\\xampp\\htdocs\\bkp",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "by_music",
+      "pasta": "C:\\xampp\\htdocs\\by_music",
+      "descricao": "ByMusic - Plataforma de IA para Músicos via WhatsApp: Uma plataforma inovadora que conecta músicos com inteligência artificial através do WhatsApp, oferecendo assistência personalizada para criação musical, teoria, composição e muito mais.",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "central-vz",
+      "pasta": "C:\\xampp\\htdocs\\central-vz",
+      "descricao": "",
+      "git": true,
+      "remoto": null,
+      "alterados": 11,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "chat-cabelereiro",
+      "pasta": "C:\\xampp\\htdocs\\chat-cabelereiro",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "coletores",
+      "pasta": "C:\\xampp\\htdocs\\coletores",
+      "descricao": "Coletores - Emulador SSH/Telnet para Android: Coletores é um emulador de terminal SSH/Telnet para dispositivos Android, desenvolvido para uso em sistemas de logística (MDM).",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "ContabIA",
+      "pasta": "C:\\xampp\\htdocs\\ContabIA",
+      "descricao": "@AGENTS.md",
+      "git": true,
+      "remoto": "gabrielvanzella1/contabia",
+      "alterados": 0,
+      "naoEnviados": 0,
+      "ultimoCommit": "2026-11-02"
+    },
+    {
+      "nome": "desbloqueio",
+      "pasta": "C:\\xampp\\htdocs\\desbloqueio",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "estuda-concursos",
+      "pasta": "C:\\xampp\\htdocs\\estuda-concursos",
+      "descricao": "Estuda Concursos: Plataforma para concurseiros estudarem de forma organizada, avançando por trilhas e etapas (estilo Duolingo), com apoio de IA (integração via MCP).",
+      "git": true,
+      "remoto": "gabrielvanzella1/estuda-concursos",
+      "alterados": 3,
+      "naoEnviados": 0,
+      "ultimoCommit": "2026-10-06"
+    },
+    {
+      "nome": "ganhar_dinheiro",
+      "pasta": "C:\\xampp\\htdocs\\ganhar_dinheiro",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "herdeirosAutoral",
+      "pasta": "C:\\xampp\\htdocs\\herdeirosAutoral",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "hortifrut",
+      "pasta": "C:\\xampp\\htdocs\\hortifrut",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "jogos_meu",
+      "pasta": "C:\\xampp\\htdocs\\jogos_meu",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "limpar_pc",
+      "pasta": "C:\\xampp\\htdocs\\limpar_pc",
+      "descricao": "Guia de Limpeza e Otimização do PC: Este projeto contém scripts PowerShell para diagnosticar e resolver problemas de lentidão no seu PC Windows.",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "logs",
+      "pasta": "C:\\xampp\\htdocs\\logs",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "luciano",
+      "pasta": "C:\\xampp\\htdocs\\luciano",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "mp3",
+      "pasta": "C:\\xampp\\htdocs\\mp3",
+      "descricao": "Conversor MP3 em lote: Aplicativo local para converter uma lista de links individuais do YouTube para MP3 e organizá-los por gênero ou pasta. Use apenas vídeos que você possui ou tem autorização para baixar.",
+      "git": true,
+      "remoto": "gabrielvanzella1/mp3",
+      "alterados": 1,
+      "naoEnviados": 0,
+      "ultimoCommit": "2026-10-08"
+    },
+    {
+      "nome": "myhouse",
+      "pasta": "C:\\xampp\\htdocs\\myhouse",
+      "descricao": "netwatch: Monitor da rede Wi-Fi de casa: inventário de dispositivos, presença de pessoas,",
+      "git": true,
+      "remoto": null,
+      "alterados": 9,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "ortofly",
+      "pasta": "C:\\xampp\\htdocs\\ortofly",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "passaporte_soletrips",
+      "pasta": "C:\\xampp\\htdocs\\passaporte_soletrips",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "pitbet",
+      "pasta": "C:\\xampp\\htdocs\\pitbet",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "pitbet_maquina",
+      "pasta": "C:\\xampp\\htdocs\\pitbet_maquina",
+      "descricao": "",
+      "git": true,
+      "remoto": "gabrielvanzella1/pitTrabalho",
+      "alterados": 0,
+      "naoEnviados": null,
+      "ultimoCommit": "2026-09-08"
+    },
+    {
+      "nome": "potenciaVScode",
+      "pasta": "C:\\xampp\\htdocs\\potenciaVScode",
+      "descricao": "potenciaVScode: Radar de tecnologia + setup replicável do ambiente Claude Code (VS Code).",
+      "git": true,
+      "remoto": "gabrielvanzella1/potenciaVScode",
+      "alterados": 0,
+      "naoEnviados": 0,
+      "ultimoCommit": "2026-09-23"
+    },
+    {
+      "nome": "projetoscante",
+      "pasta": "C:\\xampp\\htdocs\\projetoscante",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "rfid",
+      "pasta": "C:\\xampp\\htdocs\\rfid",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "smartbeach",
+      "pasta": "C:\\xampp\\htdocs\\smartbeach",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "soletrips",
+      "pasta": "C:\\xampp\\htdocs\\soletrips",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "tellCode",
+      "pasta": "C:\\xampp\\htdocs\\tellCode",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "testeenv",
+      "pasta": "C:\\xampp\\htdocs\\testeenv",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "validacao",
+      "pasta": "C:\\xampp\\htdocs\\validacao",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "verificarpc",
+      "pasta": "C:\\xampp\\htdocs\\verificarpc",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "videoia",
+      "pasta": "C:\\xampp\\htdocs\\videoia",
+      "descricao": "mcp-video-gen: 7 video providers + image-to-video + TTS + music + STT — one unified interface.",
+      "git": true,
+      "remoto": "kevinten-ai/mcp-video-gen",
+      "alterados": 0,
+      "naoEnviados": 0,
+      "ultimoCommit": "2026-07-16"
+    },
+    {
+      "nome": "vztech",
+      "pasta": "C:\\xampp\\htdocs\\vztech",
+      "descricao": "Site da VZ Soluções em Tecnologia: Site institucional da VZ Soluções em Tecnologia (nome correto desde 2026-10-07; antes \"VZ Tech · Automação com IA\"), empresa do Gabriel Vanzella (desenvolvimento de sistemas, SaaS, automação e integrações).",
+      "git": true,
+      "remoto": "gabrielvanzella1/siteVZ",
+      "alterados": 0,
+      "naoEnviados": 0,
+      "ultimoCommit": "2026-10-13"
+    },
+    {
+      "nome": "win11",
+      "pasta": "C:\\xampp\\htdocs\\win11",
+      "descricao": "",
+      "git": false,
+      "remoto": null,
+      "alterados": null,
+      "naoEnviados": null,
+      "ultimoCommit": null
+    },
+    {
+      "nome": "yrian",
+      "pasta": "C:\\xampp\\htdocs\\yrian",
+      "descricao": "minhaIA: Projeto de IA local/pessoal — ver [REQUIREMENTS.md](REQUIREMENTS.md) para o levantamento completo de requisitos, fases e stack técnica.",
+      "git": true,
+      "remoto": "gabrielvanzella1/ayran",
+      "alterados": 1,
+      "naoEnviados": 3,
+      "ultimoCommit": "2026-08-26"
+    }
+  ]
+}

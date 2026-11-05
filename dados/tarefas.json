@@ -1,0 +1,491 @@
+[
+  {
+    "id": 1,
+    "coluna": "fazendo",
+    "titulo": "Versão básica da central (conversa por voz, estudos, projetos, quadro)",
+    "detalhe": "Feito pelo Claude em 04/11. Testar com a chave do Claude.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 2,
+    "coluna": "a fazer",
+    "titulo": "Colocar a chave do Claude no .env",
+    "detalhe": "console.anthropic.com: criar a chave, definir limite de gasto mensal, colar em ANTHROPIC_API_KEY no .env (nunca no chat nem no git).",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 3,
+    "coluna": "a fazer",
+    "titulo": "Rodar o inventário no PC do trabalho",
+    "detalhe": "No PC do trabalho: git pull da central e npm run inventario. A IA passa a ver os projetos de lá.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 4,
+    "coluna": "a fazer",
+    "titulo": "Exercício: ferramenta contar_tarefas",
+    "detalhe": "Para o Gabriel fazer: ver o material Como a Central funciona por dentro, seção Exercício.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 5,
+    "coluna": "a fazer",
+    "titulo": "Exercício: desenhar a ferramenta publicar_site com aprovação",
+    "detalhe": "Parâmetros, descrição e onde pedir a aprovação humana (material Agentes de IA, exercício 2).",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 6,
+    "coluna": "ideias",
+    "titulo": "Quadro Kanban visual com arrastar e soltar",
+    "detalhe": "Hoje os cartões mudam de coluna pela conversa com a IA.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 7,
+    "coluna": "ideias",
+    "titulo": "Contas separadas para Gabriel, Derik e Mateus",
+    "detalhe": "Cada um com login, as mesmas funções e o seu histórico.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 8,
+    "coluna": "ideias",
+    "titulo": "Avisos e aprovações pelo WhatsApp",
+    "detalhe": "Ponte Baileys do ContabIA, com um chip separado. Depois trocar pela API oficial.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 9,
+    "coluna": "ideias",
+    "titulo": "Avisos no WhatsApp dos devs",
+    "detalhe": "Derik e Mateus recebem atualizações dos projetos deles.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 10,
+    "coluna": "ideias",
+    "titulo": "Sincronização automática entre os computadores",
+    "detalhe": "Puxar do GitHub ao abrir e enviar ao fechar, para nunca esquecer de subir.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 11,
+    "coluna": "ideias",
+    "titulo": "Plugins, skills e MCPs iguais nas 4 máquinas",
+    "detalhe": "Configuração no repositório; senhas ficam em cada máquina.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 12,
+    "coluna": "ideias",
+    "titulo": "Voz personalizada da IA",
+    "detalhe": "Começa com a voz do navegador; depois ElevenLabs ou voz local.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 13,
+    "coluna": "ideias",
+    "titulo": "Compartilhar materiais da Central de Estudos",
+    "detalhe": "Gerar link ou página para mandar a outras pessoas.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 14,
+    "coluna": "ideias",
+    "titulo": "Criar repositórios para os 28 projetos sem git",
+    "detalhe": "Antes, o Gabriel marca o que é lixo.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 15,
+    "coluna": "ideias",
+    "titulo": "Agente Gerente (supervisor)",
+    "detalhe": "Lê o quadro, quebra ideias em tarefas e distribui aos especialistas.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 16,
+    "coluna": "ideias",
+    "titulo": "Agente Dev por projeto",
+    "detalhe": "Conhece o CLAUDE.md do projeto e executa as tarefas dele.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 17,
+    "coluna": "ideias",
+    "titulo": "Agente Revisor",
+    "detalhe": "Confere o código antes de subir.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 18,
+    "coluna": "ideias",
+    "titulo": "Agente Publicador",
+    "detalhe": "Faz o deploy, sempre com aprovação do Gabriel pelo WhatsApp.",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 19,
+    "coluna": "ideias",
+    "titulo": "IA própria (modelo) e Ayran",
+    "detalhe": "Validar no i9 com 4 GB de VRAM; depois máquina alugada. (Em pausa desde 04/11, pedido do Gabriel.)",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z",
+    "prioridade": "baixa"
+  },
+  {
+    "id": 20,
+    "coluna": "ideias",
+    "titulo": "Conectar o banco pelo Open Finance",
+    "detalhe": "Deixar por último (pedido do Gabriel).",
+    "projeto": "central-vz",
+    "criado": "2026-11-04T22:36:01.340Z"
+  },
+  {
+    "id": 21,
+    "titulo": "Área de Integrações por pessoa (WhatsApp, Instagram, Facebook, LinkedIn…)",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "detalhe": "Opcionais. Cada usuário conecta as suas. Todo recurso que depende de uma integração mostra claramente que precisa dela e leva para a tela de conectar.",
+    "criado": "2026-11-04T22:44:35.127Z"
+  },
+  {
+    "id": 22,
+    "titulo": "Histórico: resumo semanal automático para a IA",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "detalhe": "A IA lê o histórico da semana e grava um resumo na memória (decisões, entregas, pendências).",
+    "criado": "2026-11-04T22:44:35.127Z"
+  },
+  {
+    "id": 23,
+    "titulo": "Sincronizar conhecimento e skills do VS Code em todos os PCs e projetos",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "detalhe": "Skills, agentes e conhecimento no repositório da central, ligados ao ~/.claude de cada máquina.",
+    "criado": "2026-11-04T22:44:35.127Z"
+  },
+  {
+    "id": 24,
+    "titulo": "Resumo diário no WhatsApp do Gabriel",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "detalhe": "Todo dia: o que foi feito, o que está parado e o que vem a seguir, montado pela IA a partir do histórico e do quadro. Depende da ponte do WhatsApp.",
+    "criado": "2026-11-04T22:45:20.806Z"
+  },
+  {
+    "id": 25,
+    "titulo": "Ver e-mails dentro da central (Gmail e contato@vztecnologia.com.br)",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "detalhe": "Integração opcional por pessoa (IMAP ou Gmail). A IA pode resumir e transformar e-mails em cartões.",
+    "criado": "2026-11-04T22:45:20.806Z"
+  },
+  {
+    "id": 26,
+    "titulo": "Página de Agentes: escolher qual agente pega cada tarefa",
+    "projeto": "central-vz",
+    "coluna": "a fazer",
+    "detalhe": "Gerente, Dev, Revisor e Publicador. Cada um com função, ferramentas permitidas e o que precisa de aprovação. Atribuir cartão a um agente, ver o andamento e o histórico. Execução real pelo Claude Agent SDK na máquina onde está o projeto.",
+    "criado": "2026-11-04T22:47:17.302Z"
+  },
+  {
+    "id": 27,
+    "titulo": "Área de Dúvidas: perguntas da equipe respondidas pela IA viram FAQ",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "detalhe": "Qualquer um pergunta; a IA responde; a resposta aprovada entra no material Dúvidas da equipe.",
+    "criado": "2026-11-04T22:49:34.376Z"
+  },
+  {
+    "id": 28,
+    "titulo": "Usar o Ayran local (Ollama, Qwen3 4B) para tarefas simples",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "detalhe": "Depois: começamos só com a API do Claude (decisão do Gabriel, 04/11). Roteamento: simples no local, difícil no Claude. (Em pausa desde 04/11, pedido do Gabriel.)",
+    "criado": "2026-11-04T22:49:34.376Z",
+    "prioridade": "baixa"
+  },
+  {
+    "id": 29,
+    "titulo": "Trilha Ayran 1: entender o que roda no i9",
+    "projeto": "ayran",
+    "coluna": "ideias",
+    "detalhe": "Parâmetros, quantização, VRAM. Prática: 5 perguntas no ollama run ayran x Ayran da central. Material: Trilha rumo ao Ayran. (Em pausa desde 04/11, pedido do Gabriel.)",
+    "criado": "2026-11-04T22:50:26.904Z",
+    "prioridade": "baixa"
+  },
+  {
+    "id": 30,
+    "titulo": "Trilha Ayran 2: conjunto de avaliação (20 pedidos reais)",
+    "projeto": "ayran",
+    "coluna": "ideias",
+    "detalhe": "Medir Claude e Ayran do mesmo jeito. Virar script na central. Material: Trilha rumo ao Ayran. (Em pausa desde 04/11, pedido do Gabriel.)",
+    "criado": "2026-11-04T22:50:26.904Z",
+    "prioridade": "baixa"
+  },
+  {
+    "id": 31,
+    "titulo": "Trilha Ayran 3: primeira tarefa migrada (resumir, classificar ou extrair)",
+    "projeto": "ayran",
+    "coluna": "ideias",
+    "detalhe": "Só se cumprir os critérios de pronto. Roteamento de modelos. Material: Trilha rumo ao Ayran. (Em pausa desde 04/11, pedido do Gabriel.)",
+    "criado": "2026-11-04T22:50:26.904Z",
+    "prioridade": "baixa"
+  },
+  {
+    "id": 32,
+    "titulo": "Trilha Ayran 4: RAG com os documentos da VZ",
+    "projeto": "ayran",
+    "coluna": "ideias",
+    "detalhe": "CLAUDE.md dos projetos e materiais de estudo. Material: Trilha rumo ao Ayran. (Em pausa desde 04/11, pedido do Gabriel.)",
+    "criado": "2026-11-04T22:50:26.904Z",
+    "prioridade": "baixa"
+  },
+  {
+    "id": 33,
+    "titulo": "Trilha Ayran 5: Ayran com ferramentas",
+    "projeto": "ayran",
+    "coluna": "ideias",
+    "detalhe": "Uma ferramenta simples por vez, medindo. Material: Trilha rumo ao Ayran. (Em pausa desde 04/11, pedido do Gabriel.)",
+    "criado": "2026-11-04T22:50:26.904Z",
+    "prioridade": "baixa"
+  },
+  {
+    "id": 34,
+    "titulo": "Trilha Ayran 6: máquina maior (GPU alugada)",
+    "projeto": "ayran",
+    "coluna": "ideias",
+    "detalhe": "Comparar custo e qualidade com a API do Claude. Material: Trilha rumo ao Ayran. (Em pausa desde 04/11, pedido do Gabriel.)",
+    "criado": "2026-11-04T22:50:26.904Z",
+    "prioridade": "baixa"
+  },
+  {
+    "id": 35,
+    "titulo": "Trilha Ayran 7: ajuste fino (LoRA)",
+    "projeto": "ayran",
+    "coluna": "ideias",
+    "detalhe": "Só quando RAG e ferramentas não bastarem. Material: Trilha rumo ao Ayran. (Em pausa desde 04/11, pedido do Gabriel.)",
+    "criado": "2026-11-04T22:50:26.904Z",
+    "prioridade": "baixa"
+  },
+  {
+    "id": 36,
+    "titulo": "Colocar senha nas 3 chaves SSH de servidor (active_hostinger, hostinger_contabia, scante_deploy)",
+    "projeto": "central-vz",
+    "coluna": "a fazer",
+    "prioridade": "alta",
+    "detalhe": "Segurança. ssh-keygen -p -f ~/.ssh/<chave>. Elas abrem os servidores da Hostinger.",
+    "criado": "2026-11-04T23:37:24.291Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 37,
+    "titulo": "Checklist de segurança nos PCs do Gabriel, Derik e Mateus",
+    "projeto": "central-vz",
+    "coluna": "a fazer",
+    "prioridade": "alta",
+    "detalhe": "Material Padrão de Segurança da VZ, na Central de Estudos.",
+    "criado": "2026-11-04T23:37:24.291Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 38,
+    "titulo": "Perguntas para o Gabriel explicadas para leigo",
+    "projeto": "central-vz",
+    "coluna": "a fazer",
+    "prioridade": "alta",
+    "detalhe": "Quando os devs ou os agentes precisam de decisão: a IA explica em linguagem simples, com opções; aparece em Decisões na home; a resposta libera o trabalho.",
+    "criado": "2026-11-04T23:37:24.291Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 39,
+    "titulo": "Criar projetos novos pela central",
+    "projeto": "central-vz",
+    "coluna": "a fazer",
+    "prioridade": "normal",
+    "detalhe": "Pasta, git, CLAUDE.md inicial e o projeto já entra na central.",
+    "criado": "2026-11-04T23:37:24.291Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 40,
+    "titulo": "Bom dia do Ayran (resumo da manhã por voz)",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "prioridade": "baixa",
+    "detalhe": "Como o Alfred do vídeo: ao abrir, o que chegou no WhatsApp e no e-mail, o que precisa de aprovação, agenda e prioridades. (Em pausa desde 04/11, pedido do Gabriel.)",
+    "criado": "2026-11-04T23:37:24.291Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 41,
+    "titulo": "Escritório virtual dos agentes",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "prioridade": "baixa",
+    "detalhe": "Ver os agentes como uma equipe trabalhando (vídeo do Alfred, 200 funcionários). Começar simples: lista de agentes com o que cada um está fazendo.",
+    "criado": "2026-11-04T23:37:24.291Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 42,
+    "titulo": "Criar apresentações e motion graphics em HTML",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "prioridade": "normal",
+    "detalhe": "Ação da IA: gera slides ou vídeo animado (HTML 1920x1080 com GSAP) a partir de um tema. Padrão de prompt do carrossel do Fernando Rank.",
+    "criado": "2026-11-04T23:37:24.291Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 43,
+    "titulo": "Analisar link de post ou reel e virar material de estudo",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "prioridade": "normal",
+    "detalhe": "Colar o link: a central baixa, transcreve e resume. Stories não (exigem login e somem em 24h): enviar o arquivo gravado.",
+    "criado": "2026-11-04T23:37:24.291Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 44,
+    "titulo": "Revisar skills e MCPs de terceiros antes de instalar",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "prioridade": "alta",
+    "detalhe": "Padrão de segurança: skill roda comando na máquina.",
+    "criado": "2026-11-04T23:37:24.291Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 45,
+    "titulo": "Personagem com rosto para a VZ falando na tela",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "prioridade": "normal",
+    "prazo": null,
+    "detalhe": "O Gabriel vai criar o personagem. Substitui a bola azul; boca acompanhando a fala (voz premium).",
+    "criado": "2026-11-04T23:43:22.495Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 46,
+    "titulo": "Permitir escolher a voz da VZ na conversa por voz",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "detalhe": "Sugestão do VZ: O Gabriel quer mudar a voz da VZ, mas hoje não dá para fazer isso pela central. Uma opção de escolher a voz (feminina, tom, velocidade) deixaria a conversa mais agradável para todos.",
+    "prioridade": "normal",
+    "prazo": null,
+    "criado": "2026-11-04T23:49:46.241Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 47,
+    "titulo": "Rosto 3D da Sabrina falando, com boca articulando",
+    "projeto": "central-vz",
+    "coluna": "a fazer",
+    "prioridade": "normal",
+    "prazo": null,
+    "detalhe": "Pedido do Gabriel. Precisa de um modelo .vrm da personagem (VRoid Studio é grátis, ou encomendar). Motor: three.js + three-vrm, boca seguindo o áudio da voz premium e o texto na voz do navegador; piscar, respirar. O modelo entra em public/vz/.",
+    "criado": "2026-11-05T00:11:34.764Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 48,
+    "titulo": "Agente de desenvolvimento noturno (PRs, nunca produção)",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "prioridade": "normal",
+    "prazo": null,
+    "detalhe": "Roda à noite numa máquina isolada, pega 1 a 3 cartões pequenos do quadro, abre branch e PR com testes; o Gabriel revisa e aprova. Sem acesso a produção nem a chaves. Pede repositório privado central-vz no GitHub.",
+    "criado": "2026-11-05T00:11:34.768Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 49,
+    "titulo": "Mandar áudio do celular para a Sabrina (pedir coisas e abastecer)",
+    "projeto": "central-vz",
+    "coluna": "a fazer",
+    "prioridade": "alta",
+    "prazo": null,
+    "detalhe": "Etapa 1: abrir a central no Chrome do Android por uma rede privada (Tailscale + HTTPS): a conversa por voz já funciona. Etapa 2: áudios do WhatsApp (API oficial, quando aprovada) com transcrição local (faster-whisper), porque o Claude não ouve áudio. Tudo que ela não conseguir vira cartão com passo a passo para desenvolver (já implementado).",
+    "criado": "2026-11-05T00:22:25.039Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 50,
+    "titulo": "Instalar o Tailscale no PC e no celular Android",
+    "projeto": "central-vz",
+    "coluna": "a fazer",
+    "prioridade": "normal",
+    "prazo": null,
+    "detalhe": "Rede privada para o celular alcançar a central sem abrir a internet. A central continua só em 127.0.0.1; o tailscale serve entrega por HTTPS dentro da rede privada.",
+    "criado": "2026-11-05T00:22:25.039Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 51,
+    "titulo": "Rastreio contínuo do celular com privacidade (OwnTracks)",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "prioridade": "normal",
+    "prazo": null,
+    "detalhe": "OwnTracks (Android) no modo HTTP envia a localização e os eventos de entrada e saída de lugares para uma rota nova /api/localizacao, com token pessoal revogável. Trilha em dados/localizacao/<pessoa>.jsonl, fora do git, apagada após 90 dias, com botão de pausar e apagar tudo. Para a IA vão só nomes de lugares, nunca coordenadas. Só no celular da própria pessoa.",
+    "criado": "2026-11-05T00:22:25.039Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 52,
+    "titulo": "Botão de emergência: celular roubado (acessível de qualquer PC)",
+    "projeto": "central-vz",
+    "coluna": "a fazer",
+    "prioridade": "alta",
+    "prazo": null,
+    "detalhe": "Página Segurança > Celular: checklist de preparação (Encontre meu dispositivo ativo, códigos de backup do Google, IMEI anotado, PIN do chip, contato de confiança) e passos de emergência com links (Encontre meu dispositivo: localizar, travar e apagar; Celular Seguro do governo: bloqueia IMEI, linha e apps de bancos; operadora; bancos e Pix; WhatsApp; trocar senha do Google e sair de todos os dispositivos). Botão que encerra as sessões e revoga os tokens da central. Mostra a última localização conhecida se houver rastreio. Não depender da central estar no ar: usar serviços oficiais.",
+    "criado": "2026-11-05T00:22:25.039Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 53,
+    "titulo": "Aulas de música com a VZ (violão, guitarra, bateria)",
+    "projeto": "central-vz",
+    "coluna": "ideias",
+    "prioridade": "normal",
+    "prazo": null,
+    "detalhe": "A VZ já age como professora quando a nota pessoal diz que a pessoa estuda instrumento e anota a prática (registrar_pratica, ver_pratica). Próximos: afinador e metrônomo no painel, plano de estudo por instrumento, reaproveitar o projeto by_music.",
+    "criado": "2026-11-05T00:22:25.039Z",
+    "por": "gabriel"
+  },
+  {
+    "id": 54,
+    "titulo": "VZ instrui a desenvolver o que não consegue fazer",
+    "projeto": "central-vz",
+    "coluna": "feito",
+    "prioridade": "normal",
+    "prazo": null,
+    "detalhe": "Quando não consegue, ela diz o que falta, registra em sugerir_melhoria_central com o campo como_desenvolver (onde mexer, padrão e pedido pronto para o Claude Code) e avisa.",
+    "criado": "2026-11-05T00:22:25.039Z",
+    "por": "gabriel"
+  }
+]

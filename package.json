@@ -1,0 +1,14 @@
+{
+  "name": "central-vz",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env servidor.mjs",
+    "inventario": "node scripts/inventario.mjs",
+    "usuarios": "node scripts/usuarios.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.5.0"
+  }
+}

@@ -1,0 +1,8 @@
+node_modules/
+.env
+# senhas (hash) e conversas pessoais ficam só em cada máquina
+dados/usuarios.json
+dados/sessoes.json
+dados/conversas/
+dados/privado/
+dados/pessoal/
