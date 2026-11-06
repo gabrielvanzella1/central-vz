@@ -319,7 +319,7 @@ const ROTULOS = {
   listar_tarefas: 'olhou as tarefas', passar_tarefa: 'passou uma tarefa', pegar_tarefa: 'pegou uma tarefa', concluir_tarefa: 'concluiu uma tarefa', aprovar_tarefa: 'aprovou uma tarefa', devolver_tarefa: 'devolveu uma tarefa', criar_tarefa: 'criou um cartão', editar_tarefa: 'atualizou um cartão', apagar_tarefa: 'apagou um cartão',
   salvar_memoria: 'guardou na memória', esquecer_memoria: 'esqueceu uma memória', consultar_historico: 'consultou o histórico',
   mudar_aparencia: 'mudou de aparência', registrar_pratica: 'anotou a sua prática', ver_pratica: 'olhou a sua prática', salvar_nota_pessoal: 'guardou uma nota pessoal (só você vê)', ver_notas_pessoais: 'olhou as suas notas pessoais', esquecer_nota_pessoal: 'esqueceu uma nota pessoal',
-  listar_estudos: 'olhou os estudos', criar_estudo: 'criou um material de estudo', criar_lembrete: 'criou um lembrete', ver_lembretes: 'olhou os lembretes', concluir_lembrete: 'resolveu um lembrete', ver_avisos: 'olhou os avisos', sugerir_melhoria_central: 'anotou uma melhoria para a central', abrir_tela: 'abriu uma tela', ver_radar: 'olhou o radar de novidades',
+  listar_estudos: 'olhou os estudos', criar_estudo: 'criou um material de estudo', criar_lembrete: 'criou um lembrete', criar_compromisso: 'marcou um compromisso', ver_agenda: 'olhou a agenda', apagar_compromisso: 'desmarcou um compromisso', ver_lembretes: 'olhou os lembretes', concluir_lembrete: 'resolveu um lembrete', ver_avisos: 'olhou os avisos', sugerir_melhoria_central: 'anotou uma melhoria para a central', abrir_tela: 'abriu uma tela', ver_radar: 'olhou o radar de novidades',
 };
 
 // ---- Chamar pelo nome: diga "VZ" e ela atende ----
@@ -597,6 +597,7 @@ async function home() {
     <section class="hoje" aria-label="Hoje"></section>
     <a class="dica-comando" href="#/estudos/comandos-do-claude">${dicaComandoHTML()}</a>
     <section class="areas">
+      <a class="area a-agenda" href="#/agenda"><span class="radar-ico" aria-hidden="true">📅</span><div><h2>Agenda</h2><p class="agenda-resumo">Compromissos, prazos e lembretes num calendário.</p></div><span class="tag agenda-tag">abrir</span></a>
       <a class="area a-radar" href="#/radar"><span class="radar-ico" aria-hidden="true">📡</span><div><h2>Radar de novidades</h2><p class="radar-resumo">O que saiu de novo em IA, todo dia às 7h.</p></div><span class="tag radar-tag">abrir</span></a>
       <div class="area a-conversa" data-tour="conversa">
         <h2>Conversar com <span data-nome-ia>${esc(estado.nomeIA)}</span></h2>
@@ -629,6 +630,12 @@ async function home() {
     </section>`;
   ligarTrocaAvatar();
   desenharHoje(tela.querySelector('.hoje'), tarefas);
+  { const h = new Date().toLocaleDateString('sv-SE'); const fim = new Date(Date.now() + 6 * 86_400_000).toLocaleDateString('sv-SE');
+    api(`/api/agenda?de=${h}&ate=${fim}`).then((a) => {
+      const hoje = a.compromissos.filter((c) => c.quando.startsWith(h)).length;
+      const el = tela.querySelector('.agenda-resumo');
+      if (el) el.textContent = `Hoje: ${hoje} compromisso${hoje === 1 ? '' : 's'} · Próximos 7 dias: ${a.compromissos.length} compromissos, ${a.tarefas.filter((t) => t.coluna !== 'feito').length} prazos`;
+    }).catch(() => {}); }
   api('/api/radar').then((d) => {
     const r = d.radar;
     if (!r) return;
@@ -1128,9 +1135,92 @@ async function radarTela(dataPedida) {
   if (d.gerando) setTimeout(espera, 10_000);
 }
 
+// ---------------- agenda (calendário do mês ocupando a página) ----------------
+const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const diaISO = (d) => d.toLocaleDateString('sv-SE');
+async function agendaTela(mesPedido) {
+  const hoje = new Date();
+  const [ano, mes] = /^\d{4}-\d{2}$/.test(mesPedido || '') ? mesPedido.split('-').map(Number) : [hoje.getFullYear(), hoje.getMonth() + 1];
+  const primeiro = new Date(ano, mes - 1, 1);
+  const inicio = new Date(primeiro); inicio.setDate(1 - primeiro.getDay()); // começa no domingo
+  const fim = new Date(inicio); fim.setDate(inicio.getDate() + 41);           // 6 semanas
+  await carregarPessoas();
+  const a = await api(`/api/agenda?de=${diaISO(inicio)}&ate=${diaISO(fim)}`);
+  const doDia = (iso) => [
+    ...a.compromissos.filter((c) => c.quando.startsWith(iso)).map((c) => ({ tipo: 'comp', hora: c.quando.slice(11), texto: c.titulo, obj: c })),
+    ...a.tarefas.filter((t) => t.prazo === iso).map((t) => ({ tipo: t.coluna === 'feito' ? 'feita' : t.prazo < diaISO(hoje) ? 'atrasada' : 'tarefa', hora: '', texto: t.titulo, obj: t })),
+    ...a.lembretes.filter((l) => l.quando.startsWith(iso)).map((l) => ({ tipo: 'lemb', hora: l.quando.slice(11), texto: l.texto, obj: l })),
+  ].sort((x, y) => (x.hora || '99') < (y.hora || '99') ? -1 : 1);
+  const ICONE = { comp: '📅', tarefa: '📌', atrasada: '⏰', feita: '✅', lemb: '🔔' };
+  const mesAnt = new Date(ano, mes - 2, 1), mesProx = new Date(ano, mes, 1);
+  const chaveMes = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  const dias = [];
+  for (let d = new Date(inicio); d <= fim; d.setDate(d.getDate() + 1)) dias.push(new Date(d));
+  tela.innerHTML = `
+    <section class="agenda-topo">
+      <div class="agenda-nav">
+        <a class="btn btn-claro" href="#/agenda/${chaveMes(mesAnt)}" aria-label="Mês anterior">‹</a>
+        <h1>${MESES[mes - 1]} <span>${ano}</span></h1>
+        <a class="btn btn-claro" href="#/agenda/${chaveMes(mesProx)}" aria-label="Próximo mês">›</a>
+        <a class="btn btn-claro" href="#/agenda">Hoje</a>
+      </div>
+      <div class="agenda-legenda"><span>📅 compromisso</span><span>📌 prazo</span><span>⏰ atrasada</span><span>🔔 seu lembrete</span></div>
+      <button type="button" class="btn novo-comp">+ Novo compromisso</button>
+    </section>
+    <div class="agenda-semana">${['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'].map((s) => `<span>${s}</span>`).join('')}</div>
+    <section class="agenda-grade">${dias.map((d) => {
+      const iso = diaISO(d);
+      const itens = doDia(iso);
+      return `<div class="agenda-dia ${d.getMonth() !== mes - 1 ? 'fora' : ''} ${itens.length ? '' : 'livre'} ${iso === diaISO(hoje) ? 'hoje' : ''} ${d.getDay() === 0 || d.getDay() === 6 ? 'fds' : ''}" data-dia="${iso}" tabindex="0" role="button" aria-label="${d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}, ${itens.length} itens">
+        <span class="num">${d.getDate()}</span><span class="sem">${d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })}${iso === diaISO(hoje) ? ' · hoje' : ''}</span>
+        <div class="itens">${itens.slice(0, 4).map((i) => `<span class="ag-item ag-${i.tipo}">${ICONE[i.tipo]} ${i.hora ? `<b>${esc(i.hora)}</b> ` : ''}${esc(i.texto)}</span>`).join('')}${itens.length > 4 ? `<span class="ag-mais">+${itens.length - 4}</span>` : ''}</div>
+      </div>`;
+    }).join('')}</section>`;
+  const abrirDia = (iso) => {
+    const itens = doDia(iso);
+    const titulo = new Date(`${iso}T12:00`).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const d = janela(`
+      <h2>${esc(titulo)}</h2>
+      ${itens.length ? `<ul class="lista-avisos">${itens.map((i, k) => `<li><a href="#" data-k="${k}"><span class="ico">${ICONE[i.tipo]}</span><span>${i.hora ? `<b>${esc(i.hora)}</b> ` : ''}${esc(i.texto)}<small>${i.tipo === 'comp' ? `${esc(i.obj.local || '')}${i.obj.com?.length ? ` · com ${i.obj.com.map((u) => esc(nomeCurto(u))).join(', ')}` : ''} · marcado por ${esc(nomeCurto(i.obj.de))}` : i.tipo === 'lemb' ? 'lembrete só seu' : `${esc(i.obj.projeto)} · com ${esc(quemTem(i.obj))}`}</small></span></a>${i.tipo === 'comp' && (eu.papel === 'dono' || i.obj.de === eu.usuario) ? `<button type="button" class="btn btn-claro" data-apagar="${i.obj.id}">Desmarcar</button>` : ''}</li>`).join('')}</ul>` : '<p class="vazio-grande">Dia livre.</p>'}
+      <button type="button" class="btn novo-no-dia">+ Compromisso neste dia</button>`);
+    d.querySelectorAll('[data-k]').forEach((el) => el.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const i = itens[Number(el.dataset.k)];
+      if (i.tipo !== 'comp' && i.tipo !== 'lemb') { d.close(); abrirTarefa(i.obj.id, await api('/api/tarefas')); }
+    }));
+    d.querySelectorAll('[data-apagar]').forEach((b) => b.addEventListener('click', () => { if (confirm('Desmarcar este compromisso?')) acaoTarefa('apagar_compromisso', { id: Number(b.dataset.apagar) }); }));
+    d.querySelector('.novo-no-dia').addEventListener('click', () => { d.close(); novoCompromisso(iso); });
+  };
+  tela.querySelectorAll('.agenda-dia').forEach((el) => {
+    el.addEventListener('click', () => abrirDia(el.dataset.dia));
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirDia(el.dataset.dia); } });
+  });
+  tela.querySelector('.novo-comp').addEventListener('click', () => novoCompromisso(diaISO(hoje)));
+}
+function novoCompromisso(dia) {
+  const d = janela(`
+    <h2>Novo compromisso</h2>
+    <form class="form-tarefa">
+      <label>O quê?<input name="titulo" required maxlength="140" placeholder="Ex.: reunião com a Luciane" /></label>
+      <label>Dia<input type="date" name="dia" required value="${esc(dia)}" /></label>
+      <label>Hora<input type="time" name="hora" required value="09:00" /></label>
+      <label>Duração<select name="dur"><option value="30">30 minutos</option><option value="60" selected>1 hora</option><option value="120">2 horas</option><option value="240">4 horas</option></select></label>
+      <label>Onde (lugar ou link)<input name="local" maxlength="200" /></label>
+      <fieldset class="com-quem-f"><legend>Com quem da equipe</legend>${pessoas.filter((p) => p.usuario !== eu.usuario).map((p) => `<label class="linha"><input type="checkbox" name="com" value="${esc(p.usuario)}" /> ${esc(p.nome)}</label>`).join('') || '<small>Só você por enquanto.</small>'}</fieldset>
+      <label>Detalhes (opcional)<textarea name="detalhe" rows="2"></textarea></label>
+      <p class="dica">Coisa pessoal? Use um lembrete (só você vê): “Sabrina, me lembra…”.</p>
+      <button class="btn" type="submit">Marcar</button>
+    </form>`);
+  d.querySelector('form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target;
+    acaoTarefa('criar_compromisso', { titulo: f.titulo.value, quando: `${f.dia.value}T${f.hora.value}`, duracao_min: Number(f.dur.value), local: f.local.value, detalhe: f.detalhe.value, com: [...f.querySelectorAll('[name=com]:checked')].map((c) => c.value) });
+  });
+}
+
 // ---------------- avisos (bolinhas estilo Instagram) ----------------
-const AREA_DO_AVISO = { tarefas: ['#/quadro', '.a-quadro'], prazos: ['#/quadro', '.a-quadro'], lembretes: ['#/', '.hoje-topo'], radar: ['#/radar', '.a-radar'], estudos: ['#/estudos', '.a-estudos'], equipe: ['#/historico', '.a-equipe'] };
-const ICONE_AVISO = { tarefas: '📌', prazos: '⏰', lembretes: '🔔', radar: '📡', estudos: '📚', equipe: '👥' };
+const AREA_DO_AVISO = { tarefas: ['#/quadro', '.a-quadro'], prazos: ['#/agenda', '.a-agenda'], lembretes: ['#/agenda', '.a-agenda'], agenda: ['#/agenda', '.a-agenda'], radar: ['#/radar', '.a-radar'], estudos: ['#/estudos', '.a-estudos'], equipe: ['#/historico', '.a-equipe'] };
+const ICONE_AVISO = { tarefas: '📌', prazos: '⏰', lembretes: '🔔', agenda: '📅', radar: '📡', estudos: '📚', equipe: '👥' };
 let avisos = { itens: [], contagem: {}, total: 0 };
 async function atualizarAvisos() {
   if (!eu || eu.trocarSenha || eu.modo) return;
@@ -1201,7 +1291,7 @@ async function rotear() {
   const [area, sub] = location.hash.replace(/^#\/?/, '').split('/');
   if (area !== 'conversa') soltarConversa(false); // a conversa vai para a doca e continua
   document.querySelector('.voltar').hidden = !area;
-  const telas = { '': home, conversa, quadro, projetos, estudos: () => estudos(sub), memoria, historico: historicoTela, radar: () => radarTela(sub) };
+  const telas = { '': home, conversa, quadro, agenda: () => agendaTela(sub), projetos, estudos: () => estudos(sub), memoria, historico: historicoTela, radar: () => radarTela(sub) };
   await (telas[area] || home)();
   const vista = { quadro: 'tarefas', radar: 'radar', estudos: 'estudos', historico: 'equipe' }[area];
   await atualizarAvisos();

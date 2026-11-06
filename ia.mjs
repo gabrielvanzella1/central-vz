@@ -144,7 +144,7 @@ const PRIORIDADES = ['alta', 'normal', 'baixa'];
 const dataValida = (d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d);
 const hojeISO = () => new Date().toLocaleDateString('sv-SE'); // AAAA-MM-DD no fuso local
 const linhaTarefa = (t) => `#${t.id} [${t.coluna === 'aprovar' ? 'esperando aprovação' : t.coluna}] (${t.projeto}) com: ${nomeDe(t.responsavel)}${t.liberada && !t.responsavel ? ' (liberada para a equipe)' : ''}${t.prioridade === 'alta' ? ' PRIORIDADE ALTA' : t.prioridade === 'baixa' ? ' (baixa)' : ''}${t.prazo ? ` prazo ${t.prazo}` : ''} ${t.titulo}${t.detalhe ? ` — ${t.detalhe}` : ''}`;
-const TELAS = ['inicio', 'conversa', 'quadro', 'projetos', 'estudos', 'memoria', 'historico', 'radar'];
+const TELAS = ['inicio', 'conversa', 'quadro', 'agenda', 'projetos', 'estudos', 'memoria', 'historico', 'radar'];
 const texto = (v) => typeof v === 'string' && v.trim() !== '';
 const exigir = (cond, msg) => { if (!cond) throw new Error(msg); };
 const obj = (properties, required = []) => ({ type: 'object', properties, required, additionalProperties: false });
@@ -549,6 +549,62 @@ const ACOES = {
       return `Lembrete #${l.id} resolvido.`;
     },
   },
+  criar_compromisso: {
+    descricao: 'Marca um compromisso na agenda da VZ (reunião, ligação, entrega, visita), com dia e hora. Converta "amanhã", "sexta às 14h" para AAAA-MM-DDTHH:MM no horário de Brasília. A agenda é vista pela equipe; coisas pessoais vão em criar_lembrete.',
+    parametros: obj({
+      titulo: { type: 'string' },
+      quando: { type: 'string', description: 'AAAA-MM-DDTHH:MM (horário de Brasília)' },
+      duracao_min: { type: 'integer', description: 'Duração em minutos (padrão 60)' },
+      local: { type: 'string', description: 'Lugar ou link da reunião' },
+      com: { type: 'array', items: { type: 'string' }, description: 'Usuários da equipe que participam (ex.: ["derik"])' },
+      projeto: { type: 'string' },
+      detalhe: { type: 'string' },
+    }, ['titulo', 'quando']),
+    fazer: (e, pessoa) => {
+      exigir(texto(e.titulo), 'diga qual é o compromisso');
+      exigir(DATA_HORA.test(e.quando || ''), 'quando deve ser AAAA-MM-DDTHH:MM');
+      const dur = e.duracao_min === undefined ? 60 : Number(e.duracao_min);
+      exigir(Number.isInteger(dur) && dur >= 5 && dur <= 1440, 'duração entre 5 minutos e 24 horas');
+      const com = (Array.isArray(e.com) ? e.com : []).filter((u) => typeof u === 'string');
+      exigir(com.every((u) => pessoasValidas().includes(u)), 'pessoa inválida em "com"');
+      const lista = compromissos();
+      const id = lista.reduce((m, c) => Math.max(m, c.id), 0) + 1;
+      lista.push({ id, titulo: e.titulo.trim().slice(0, 140), quando: e.quando, duracao_min: dur, local: (e.local || '').trim().slice(0, 200), com, projeto: (e.projeto || '').trim().slice(0, 60), detalhe: (e.detalhe || '').trim().slice(0, 1000), de: pessoa.usuario, criado: new Date().toISOString() });
+      lista.sort((a, b) => (a.quando < b.quando ? -1 : 1));
+      gravar('agenda.json', lista);
+      registrar(pessoa, 'compromisso_criado', `${e.quando.replace('T', ' ')} ${e.titulo}`);
+      const [d, h] = e.quando.split('T');
+      return `Compromisso #${id} marcado para ${d.split('-').reverse().join('/')} às ${h}: ${e.titulo.trim()}.`;
+    },
+  },
+  ver_agenda: {
+    descricao: 'Mostra a agenda de um período: compromissos, tarefas com prazo e os lembretes da própria pessoa. Use para "o que tenho hoje", "minha semana", "o que tem na sexta".',
+    parametros: obj({ de: { type: 'string', description: 'AAAA-MM-DD (padrão hoje)' }, ate: { type: 'string', description: 'AAAA-MM-DD (padrão 7 dias depois)' } }),
+    fazer: (e, pessoa) => {
+      const de = dataValida(e.de || '') ? e.de : hojeISO();
+      const ate = dataValida(e.ate || '') ? e.ate : new Date(Date.now() + 7 * 86_400_000).toLocaleDateString('sv-SE');
+      const a = agendaPara(pessoa, de, ate);
+      const linhas = [
+        ...a.compromissos.map((c) => `${c.quando.replace('T', ' ')} 📅 ${c.titulo}${c.local ? ` (${c.local})` : ''}${c.com.length ? ` com ${c.com.map(nomeDe).join(', ')}` : ''}`),
+        ...a.tarefas.filter((t) => t.coluna !== 'feito').map((t) => `${t.prazo} 📌 prazo: ${t.titulo} (com ${nomeDe(t.responsavel)})`),
+        ...a.lembretes.map((l) => `${l.quando.replace('T', ' ')} 🔔 ${l.texto}`),
+      ].sort();
+      return linhas.join('\n') || `Nada na agenda de ${de} a ${ate}.`;
+    },
+  },
+  apagar_compromisso: {
+    descricao: 'Desmarca um compromisso da agenda, pelo id. Só quem marcou ou o Gabriel.',
+    parametros: obj({ id: { type: 'integer' } }, ['id']),
+    fazer: (e, pessoa) => {
+      const lista = compromissos();
+      const c = lista.find((x) => x.id === Number(e.id));
+      exigir(c, `o compromisso #${e.id} não existe`);
+      exigir(ehDono(pessoa) || c.de === pessoa.usuario, 'só quem marcou ou o Gabriel desmarca');
+      gravar('agenda.json', lista.filter((x) => x !== c));
+      registrar(pessoa, 'compromisso_apagado', `${c.quando.replace('T', ' ')} ${c.titulo}`);
+      return `Compromisso #${c.id} desmarcado.`;
+    },
+  },
   ver_avisos: {
     descricao: 'Conta o que aconteceu desde a última vez que a pessoa olhou: tarefas que mudaram (passadas, terminadas, esperando aprovação), radar novo, materiais novos e o que a equipe fez. Use quando perguntarem "o que eu perdi", "tem novidade?", "o que aconteceu?", e de leve na primeira conversa do dia.',
     parametros: obj({}),
@@ -566,6 +622,19 @@ const ACOES = {
     navegar: (e) => (e.tela === 'inicio' ? '#/' : e.tela === 'estudos' && e.estudo ? `#/estudos/${e.estudo}` : `#/${e.tela}`),
   },
 };
+
+// ---------- agenda: compromissos (vão pelo git, para aparecer em todos os PCs) ----------
+export const compromissos = () => ler('agenda.json', []);
+const DATA_HORA = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+// Tudo o que cai num período, para a tela de calendário: compromissos, tarefas com prazo e os lembretes da própria pessoa
+export function agendaPara(pessoa, de, ate) {
+  const dentro = (d) => d >= de && d <= ate;
+  return {
+    compromissos: compromissos().filter((c) => dentro(c.quando.slice(0, 10))),
+    tarefas: tarefas().filter((t) => t.prazo && dentro(t.prazo)).map((t) => ({ id: t.id, titulo: t.titulo, prazo: t.prazo, coluna: t.coluna, prioridade: t.prioridade, responsavel: t.responsavel, projeto: t.projeto })),
+    lembretes: (pessoal(pessoa.usuario).lembretes || []).filter((l) => !l.feito && dentro(l.quando.slice(0, 10))),
+  };
+}
 
 // ---------- avisos (as bolinhas, estilo Instagram) ----------
 // O que aconteceu desde a última vez que a pessoa viu cada área. Na primeira vez, olha os últimos 3 dias.
@@ -593,6 +662,10 @@ export function avisosPara(pessoa, vistoEm = {}) {
     if (l.feito || l.quando > agoraLocal) continue;
     itens.push({ area: 'lembretes', id: l.id, em: `${l.quando}:00.000Z`, importante: true, fixo: true, texto: `Lembrete: ${l.texto}` });
   }
+  for (const c of compromissos()) {
+    if (c.quando.slice(0, 10) !== hoje || c.quando < agoraLocal.slice(0, 16) || !(c.de === pessoa.usuario || (c.com || []).includes(pessoa.usuario) || c.equipe)) continue;
+    itens.push({ area: 'agenda', id: c.id, em: `${c.quando}:00.000Z`, importante: true, fixo: true, texto: `Hoje às ${c.quando.slice(11)}: ${c.titulo}${c.local ? ` (${c.local})` : ''}` });
+  }
   const dataRadar = listarRadar()[0];
   const radar = dataRadar && lerRadar(dataRadar);
   if (radar && radar.gerado_em > desde('radar')) itens.push({ area: 'radar', em: radar.gerado_em, texto: `Radar novo: ${radar.itens.length} novidades${radar.top3[0] ? ` (destaque: ${radar.top3[0].titulo})` : ''}` });
@@ -603,7 +676,7 @@ export function avisosPara(pessoa, vistoEm = {}) {
   const daEquipe = atividades({ desde: desde('equipe'), limite: 500 }).filter((e) => e.usuario !== pessoa.usuario && !TIPOS_SILENCIOSOS.includes(e.tipo));
   if (daEquipe.length) itens.push({ area: 'equipe', em: daEquipe[0].data, texto: `${daEquipe.length} ${daEquipe.length === 1 ? 'coisa feita' : 'coisas feitas'} pela equipe (última: ${nomeDe(daEquipe[0].usuario)} — ${daEquipe[0].descricao.slice(0, 80)})` });
   itens.sort((a, b) => (a.em < b.em ? 1 : -1));
-  const contagem = Object.fromEntries(['tarefas', 'prazos', 'lembretes', 'radar', 'estudos', 'equipe'].map((a) => [a, itens.filter((i) => i.area === a).length]));
+  const contagem = Object.fromEntries(['tarefas', 'prazos', 'lembretes', 'agenda', 'radar', 'estudos', 'equipe'].map((a) => [a, itens.filter((i) => i.area === a).length]));
   itens.sort((a, b) => Number(Boolean(b.importante)) - Number(Boolean(a.importante))); // importante primeiro
   const resolvidasHoje = tarefas().filter((t) => (t.linha || []).some((l) => l.por === pessoa.usuario && l.em.slice(0, 10) === new Date().toISOString().slice(0, 10) && /^(terminou|aprovou)/.test(l.texto))).length;
   return { itens: itens.slice(0, 50), contagem, total: itens.length, resolvidasHoje };
@@ -637,6 +710,7 @@ Como agir:
 - "Prioridade de hoje" = cartões com prioridade alta ou prazo até hoje, fora de "feito" (listar_tarefas com so_prioridades).
 - Tarefas têm dono: cada uma está com alguém (Gabriel, Derik, Mateus, o agente da noite) ou com ninguém. Fale assim, sem jargão de Kanban: "está com o Derik", "esperando você aprovar", "liberada para a equipe".
 - O Gabriel passa e libera tarefas (passar_tarefa). Os devs pegam só as liberadas (pegar_tarefa). Quem termina usa concluir_tarefa: se for da equipe, vai para o Gabriel aprovar (aprovar_tarefa ou devolver_tarefa com o motivo).
+- Agenda: compromissos da equipe (criar_compromisso, ver_agenda, apagar_compromisso) aparecem na tela Agenda, um calendário. "O que tenho hoje/esta semana?" = ver_agenda. Coisas pessoais vão em criar_lembrete, nunca na agenda da equipe.
 - "O que eu perdi?", "tem novidade?": use ver_avisos (tarefas que mudaram, radar, materiais novos e o que a equipe fez). Fale primeiro do que é importante (esperando aprovação, tarefas com a pessoa).
 - "Passa pro agente" = passar_tarefa com para "agente": o agente da noite pega e abre um Pull Request.
 

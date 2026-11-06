@@ -167,3 +167,17 @@ test('avisos: o que outra pessoa fez aparece; o que eu fiz não; lembrete vencid
   // lembrete é privado: outra pessoa não vê
   assert.match(await ia.executarAcao('ver_lembretes', {}, dev), /Nenhum/);
 });
+
+test('agenda: marcar, ver, aviso do dia e desmarcar', async () => {
+  await assert.rejects(ia.executarAcao('criar_compromisso', { titulo: 'x', quando: 'amanhã' }, dono), /AAAA/);
+  await assert.rejects(ia.executarAcao('criar_compromisso', { titulo: 'x', quando: '2030-01-01T10:00', com: ['fantasma'] }, dono), /pessoa/);
+  assert.match(await ia.executarAcao('criar_compromisso', { titulo: 'Reunião com a Luciane', quando: '2030-01-02T14:30', local: 'Meet', com: [dev.usuario] }, dono), /02\/01\/2030 às 14:30/);
+  const id = ia.compromissos().at(-1).id;
+  const r = await ia.executarAcao('ver_agenda', { de: '2030-01-01', ate: '2030-01-03' }, dev);
+  assert.match(r, /Reunião com a Luciane/);
+  const a = ia.agendaPara(dono, '2030-01-01', '2030-01-31');
+  assert.equal(a.compromissos.length, 1);
+  await assert.rejects(ia.executarAcao('apagar_compromisso', { id }, dev), /quem marcou/);
+  await ia.executarAcao('apagar_compromisso', { id }, dono);
+  assert.equal(ia.compromissos().length, 0);
+});

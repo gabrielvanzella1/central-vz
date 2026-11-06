@@ -6,7 +6,7 @@ import path from 'node:path';
 import dns from 'node:dns/promises';
 import { listarRadar, lerRadar, gerarRadar, agendarRadar, radarRodando, perfis } from './radar.mjs';
 import Anthropic from '@anthropic-ai/sdk';
-import { avisosPara, conversar, historico, novaConversa, todosProjetos, executarAcao, listaEstudos, tarefas, memorias, dicas, dicaProjeto, acatarDica, registrar, atividades } from './ia.mjs';
+import { agendaPara, avisosPara, conversar, historico, novaConversa, todosProjetos, executarAcao, listaEstudos, tarefas, memorias, dicas, dicaProjeto, acatarDica, registrar, atividades } from './ia.mjs';
 import { lerUsuarios, marcarVistoEm, registrarDiaDeUso, entrar, quemE, sair, trocarSenha, marcarVisto, definirVersao, encerrarSessoes, configurarEmergencia, removerEmergencia, statusEmergencia, recuperar, cookieSessao, cookieApagar } from './auth.mjs';
 
 const PORTA = Number(process.env.PORTA || 8790);
@@ -61,6 +61,7 @@ function respostaDeCoacao(req, res, rota, eu) {
     if (rota === '/api/dicas') return json(res, {});
     if (rota.startsWith('/api/estudos/')) return json(res, { erro: 'não encontrado' }, 404);
     if (rota === '/api/avisos') return json(res, { itens: [], contagem: {}, total: 0 });
+    if (rota === '/api/agenda') return json(res, { compromissos: [], tarefas: [], lembretes: [] });
     if (['/api/tarefas', '/api/pessoas', '/api/projetos', '/api/memoria', '/api/historico', '/api/estudos', '/api/conversa'].includes(rota)) return json(res, []);
     return json(res, { erro: 'Indisponível no momento.' }, 503);
   }
@@ -142,6 +143,12 @@ async function api(req, res, url) {
     try { return json(res, { mensagem: await executarAcao(nome, entrada || {}, eu) }); } catch (erro) { return json(res, { erro: erro.message }, 400); }
   }
   if (req.method === 'GET' && rota === '/api/tarefas') return json(res, tarefas());
+  if (req.method === 'GET' && rota === '/api/agenda') {
+    const de = url.searchParams.get('de') || '';
+    const ate = url.searchParams.get('ate') || '';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(de) || !/^\d{4}-\d{2}-\d{2}$/.test(ate)) return json(res, { erro: 'período inválido' }, 400);
+    return json(res, agendaPara(eu, de, ate));
+  }
   if (req.method === 'GET' && rota === '/api/avisos') return json(res, { ...avisosPara(eu, eu.vistoEm), sequencia: registrarDiaDeUso(eu.usuario) });
   if (req.method === 'POST' && rota === '/api/avisos/visto') {
     const { area } = await corpo(req);

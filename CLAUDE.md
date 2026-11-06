@@ -51,6 +51,8 @@ Painel interno da VZ Soluções em Tecnologia (Gabriel Vanzella, devs Derik e Ma
   - **Número no ícone do app** (Badging API) e **app instalável** (PWA: `public/manifest.webmanifest`, `icone-192/512.png`). No Edge ou Chrome: menu ⋯ > Aplicativos > Instalar a Central da VZ.
   - **Incentivo** no topo da tela Hoje: 🔥 dias seguidos usando (`registrarDiaDeUso`), ✅ resolvidas hoje e 🔴 quantos avisos faltam ver.
   - A Sabrina conta os avisos (`ver_avisos`).
+- **Agenda (05/11):** tela `#/agenda`, com o calendário do mês ocupando a página: 📅 compromissos (`dados/agenda.json`, vão pelo git e aparecem nos dois PCs), 📌 prazos das tarefas (⏰ atrasadas, ✅ feitas) e 🔔 os lembretes da própria pessoa. No celular vira uma lista só com os dias que têm algo e o dia de hoje. Toque no dia para ver detalhes e marcar um compromisso. Ações `criar_compromisso`, `ver_agenda` e `apagar_compromisso` ("Sabrina, marca reunião com a Luciane sexta às 14h"). Os compromissos de hoje entram nos avisos. Coisa pessoal vai em lembrete, nunca na agenda da equipe.
+- **Missão (05/11):** ser a empresa de TI mais organizada, proativa e boa da região, "os magos da fábrica de software", elevando o atendimento e o cumprimento dos prazos com 3 devs. Também registrada no CLAUDE.md global (biblioteca).
 - **Comandos do Claude na Central:** material "Cola dos comandos do Claude" nos Estudos (`conteudo/estudos/comandos-do-claude.md`) e "Comando do dia" na home (lista `COMANDOS_DIA` em `app.js`, troca todo dia).
 
 ## WhatsApp da Central (PRÓXIMO A FAZER, mastigado em 05/11)
@@ -124,7 +126,7 @@ Painel interno da VZ Soluções em Tecnologia (Gabriel Vanzella, devs Derik e Ma
 6. **Pesquisa na internet na conversa da Sabrina** (o radar já pesquisa; a conversa ainda não): acrescentar em `conversar()` a ferramenta `{type:'web_search_20260209', name:'web_search', max_uses:3}`, regra no FIXO para citar a fonte e aviso na tela.
 7. **Avatar 3D com a boca mexendo:** depende do Gabriel criar a Sabrina no VRoid Studio e salvar em `public/vz/sabrina.vrm`.
 8. **WhatsApp da Central: é o PRÓXIMO**. Plano completo na seção "WhatsApp da Central" acima. Não precisa desconectar o ContabIA.
-9. **Central em produção (não feito):** hoje ela só roda no PC (127.0.0.1). Antes de pôr na internet, decidir: onde roda (VPS ou este PC com Tailscale), HTTPS, porta de entrada protegida (Cloudflare Access ou Tailscale), backup de `dados/` e a chave do Claude só no servidor. Nunca no `public_html` do site.
+9. **Central em produção: vai para uma VPS (decidido em 05/11).** A hospedagem compartilhada da Hostinger não serve: ela não mantém um servidor Node ligado. Na VPS: Node 24 rodando com pm2 ou um serviço do systemd, HTTPS (Caddy ou Nginx + Let's Encrypt), porta de entrada protegida, `.env` só no servidor, backup diário de `dados/`. A ponte do WhatsApp e o radar das 7h passam a rodar lá, 24h. Ainda falta decidir: onde roda (VPS ou este PC com Tailscale), HTTPS, porta de entrada protegida (Cloudflare Access ou Tailscale), backup de `dados/` e a chave do Claude só no servidor. Nunca no `public_html` do site.
 10. Conferir a tela Hoje e a doca no celular (390px).
 
 ## Agente da noite (regras para o agente agendado na nuvem)
