@@ -20,7 +20,7 @@ test('valida categorias, esforço, tamanhos e links', () => {
       'lixo',
     ],
   });
-  assert.equal(r.resumo.length, 400);
+  assert.equal(r.resumo.length, 700);
   assert.equal(r.top3.length, 1);
   assert.equal(r.itens.length, 2);
   assert.equal(r.itens[0].link, 'https://exemplo.com/a');

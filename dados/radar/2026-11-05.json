@@ -1,0 +1,263 @@
+{
+  "data": "2026-11-05",
+  "gerado_em": "2026-11-06T01:19:35.839Z",
+  "resumo": "A semana foi fraca em modelos abertos e forte em ferramentas para quem desenvolve: a API do Claude ganhou o message threads (só manda as mensagens novas a cada turno e responde mais rápido em agentes longos), o Claude Code recebeu várias atualizações de segurança e controle de custo, e saiu a versão v2.3.0 dos servidores MCP de referência. Não encontramos nenhum modelo aberto novo de imagem, vídeo",
+  "top3": [
+    {
+      "titulo": "Atualizar o Claude Code e sair do fast mode do Opus 4.8",
+      "primeiro_passo": "Rodar a atualização do Claude Code em todas as máquinas da equipe, procurar nos scripts e nas configs da VZ onde o fast mode do Opus 4.8 é usado e trocar pelo Opus 5.5 antes de 30/11, quando essas chamadas passam a dar erro."
+    },
+    {
+      "titulo": "Message threads na API para a Central da VZ e o ContabIA",
+      "primeiro_passo": "Pegar uma conversa longa da Central da VZ, repetir com o header beta message-threads-2026-08-12 mandando só as mensagens novas, e comparar o tempo até a primeira resposta com o jeito atual."
+    },
+    {
+      "titulo": "Skills que economizam tokens no Claude Code (caveman e code-review-graph)",
+      "primeiro_passo": "Instalar o caveman num repositório de teste (sugestão: o do videoia), fazer a mesma tarefa com e sem a skill e comparar o tamanho das respostas e o custo no relatório de uso."
+    }
+  ],
+  "itens": [
+    {
+      "categoria": "claude",
+      "titulo": "Message threads na Messages API (beta)",
+      "oque": "A API passa a guardar a conversa no servidor, e cada pedido seguinte manda só as mensagens novas, o que deixa a primeira resposta mais rápida em conversas longas.",
+      "visual": "Antes: cada turno do agente reenviava o histórico inteiro (centenas de milhares de tokens). Depois: o pedido leva só um ID de thread e a mensagem nova, e a resposta começa a aparecer antes na tela. A fonte fala em cerca de 35% menos espera em conversas muito longas.",
+      "para_vz": "Central da VZ (voz precisa de resposta rápida) e agentes do ContabIA que passam muito tempo lendo documentos.",
+      "esforco": "medio",
+      "licenca": "",
+      "data": "2026-11-02",
+      "link": "https://platform.claude.com/docs/en/release-notes/overview"
+    },
+    {
+      "categoria": "claude",
+      "titulo": "Usage and Cost Analytics API (beta)",
+      "oque": "Nova API que mostra o uso de tokens e o custo da organização, com filtro e agrupamento por modelo, workspace, chave de API e quem fez o pedido.",
+      "visual": "Um painel com barras de custo por projeto: chave do ContabIA, chave do videoia, chave da Central, cada uma com seu valor no mês.",
+      "para_vz": "Puxar esses dados para dentro da Central da VZ e cobrar certo de cada cliente e projeto.",
+      "esforco": "medio",
+      "licenca": "",
+      "data": "2026-10-29",
+      "link": "https://releasebot.io/updates/anthropic/claude-developer-platform"
+    },
+    {
+      "categoria": "claude",
+      "titulo": "Claude Code 2.1.317: mais segurança e hooks que bloqueiam",
+      "oque": "O Claude Code agora pergunta antes de mandar o seu e-mail da conta pela rede, avisa quando uma tarefa agendada no /schedule ganha conectores que você não pediu, e o Agent SDK aceita onFailure: \"block\" nos hooks.",
+      "visual": "No terminal aparece uma caixa de confirmação antes de um comando curl que levaria o seu e-mail. Num hook do SDK com falha, a ação é barrada em vez de seguir em frente sem aviso.",
+      "para_vz": "Rotina diária da equipe e agentes feitos com o Agent SDK para clientes, que ficam mais seguros por padrão.",
+      "esforco": "baixo",
+      "licenca": "",
+      "data": "2026-11-03",
+      "link": "https://code.claude.com/docs/en/changelog"
+    },
+    {
+      "categoria": "claude",
+      "titulo": "Fast mode do Opus 4.8 vai sair em 30/11",
+      "oque": "O fast mode do Opus 4.8 já está obsoleto e será removido em 30/11/2026. Depois disso as chamadas dão erro, sem cair para o modo normal, e a saída indicada é migrar para o Opus 5.5.",
+      "visual": "Antes: o sistema usa Opus 4.8 em fast mode e funciona. A partir de 30/11: a mesma chamada volta com erro, a menos que tenha sido trocada para Opus 5.5.",
+      "para_vz": "Revisar as configs de todos os sistemas sob medida e scripts internos que usam esse modo.",
+      "esforco": "baixo",
+      "licenca": "",
+      "data": "2026-11-03",
+      "link": "https://code.claude.com/docs/en/changelog"
+    },
+    {
+      "categoria": "claude",
+      "titulo": "Claude Code 2.1.314 a 2.1.318: compactação de conversa parada e orçamento compartilhado",
+      "oque": "Essas versões trouxeram proteção mais forte contra escrita indevida, compactação de conversas paradas, controles de gateway, orçamento compartilhado entre pessoas e várias correções de MCP e de agentes em segundo plano.",
+      "visual": "Você volta para uma sessão que ficou parada e ela já está resumida e leve. O admin vê um único orçamento dividido pela equipe.",
+      "para_vz": "Controlar o gasto do time da VZ com Claude Code e deixar as sessões longas mais estáveis.",
+      "esforco": "baixo",
+      "licenca": "",
+      "data": "2026-11-04",
+      "link": "https://releasebot.io/updates/anthropic/claude-code"
+    },
+    {
+      "categoria": "claude",
+      "titulo": "Claude Desktop: mudança que quebra configs de retenção em 10/11",
+      "oque": "A partir de 10/11, as conversas novas que forem tarefas do Cowork passam a ser apagadas pelo coworkSessionRetentionDays, e não mais pelo chatSessionRetentionDays. É preciso configurar os dois.",
+      "visual": "Antes: uma configuração só controlava tudo. Depois: na tela de política do admin aparecem dois campos de retenção que precisam ser preenchidos.",
+      "para_vz": "Ajustar a política do Claude Desktop nas máquinas da VZ para não perder histórico de tarefas.",
+      "esforco": "baixo",
+      "licenca": "",
+      "data": "2026-11-03",
+      "link": "https://claude.com/docs/cowork/changelog"
+    },
+    {
+      "categoria": "claude",
+      "titulo": "Personal Finance no Claude (só nos EUA)",
+      "oque": "Beta que liga contas de banco e cartão ao Claude via Plaid, só para leitura, e responde perguntas sobre saldo e gastos em linguagem do dia a dia.",
+      "visual": "Uma página única com os saldos de todas as contas e um chat ao lado: 'quanto gastei com mercado em outubro?' e a resposta vem com o valor e a explicação.",
+      "para_vz": "Serve de modelo de produto para o ContabIA: tela única com os dados financeiros, chat em português simples e acesso só de leitura. Não dá para usar no Brasil, mas vale copiar a ideia.",
+      "esforco": "baixo",
+      "licenca": "",
+      "data": "2026-11-05",
+      "link": "https://techcrunch.com/2026/11/05/claude-can-now-analyze-your-spending-with-its-new-personal-finance-tool/"
+    },
+    {
+      "categoria": "mcp",
+      "titulo": "Servidores MCP de referência v2.3.0",
+      "oque": "A nova versão oficial traz filtro opcional para o servidor de arquivos, lista de sites permitidos e tempo limite no servidor de fetch, e duas ferramentas novas de Git.",
+      "visual": "Antes: o MCP de fetch podia acessar qualquer site. Depois: a config tem uma lista dos domínios permitidos e um tempo limite em segundos.",
+      "para_vz": "Deixar mais seguros os MCPs de arquivos e fetch que usamos no Claude Code e na Central da VZ.",
+      "esforco": "baixo",
+      "licenca": "Open source (repositório oficial do modelcontextprotocol)",
+      "data": "2026-11-04",
+      "link": "https://forkast.news/understanding-the-v2-3-0-mcp-server-release-and-its-granular-controls/"
+    },
+    {
+      "categoria": "mcp",
+      "titulo": "LLM Wiki Compiler (1º no ranking diário do MCP Market)",
+      "oque": "Transforma documentos, transcrições e páginas da web numa wiki em Markdown com links entre as páginas e citações, pronta para servir de contexto para a IA.",
+      "visual": "Você joga uma pasta de PDFs e transcrições e recebe uma wiki navegável, em que cada página tem links e fontes.",
+      "para_vz": "ContabIA (base de normas e manuais) e Central da VZ (base de conhecimento interna).",
+      "esforco": "medio",
+      "licenca": "Projeto no GitHub (conferir a licença no repositório)",
+      "data": "2026-11-01",
+      "link": "https://mcpmarket.com/daily/top-mcp-server-list-november-1-2026"
+    },
+    {
+      "categoria": "mcp",
+      "titulo": "Gateway MCP (vários servidores atrás de uma única interface)",
+      "oque": "Junta muitos servidores MCP e APIs REST atrás de uma interface leve, para não lotar a janela de contexto do modelo.",
+      "visual": "Antes: o Claude carregava 80 ferramentas no contexto. Depois: aparece uma ferramenta só, que encontra e chama as outras quando precisa.",
+      "para_vz": "Central da VZ, que tende a acumular muitos MCPs e integrações.",
+      "esforco": "medio",
+      "licenca": "Projeto no GitHub (conferir a licença)",
+      "data": "2026-11-01",
+      "link": "https://mcpmarket.com/daily/top-mcp-server-list-november-1-2026"
+    },
+    {
+      "categoria": "mcp",
+      "titulo": "Betterlytics (analytics com MCP)",
+      "oque": "Reúne analytics, replay de sessão, rastreio de erros, Core Web Vitals e monitor de uptime numa plataforma com MCP e foco em privacidade.",
+      "visual": "No Claude você pergunta 'por que o site do cliente X ficou lento ontem?' e recebe os Web Vitals e os erros do dia.",
+      "para_vz": "Sites e sistemas sob medida: monitorar os clientes por chat.",
+      "esforco": "medio",
+      "licenca": "Projeto no GitHub (conferir a licença)",
+      "data": "2026-11-01",
+      "link": "https://mcpmarket.com/daily/top-mcp-server-list-november-1-2026"
+    },
+    {
+      "categoria": "mcp",
+      "titulo": "MCPs oficiais de marketing e o prazo do Stripe",
+      "oque": "Levantamento conferido nas documentações confirma servidores MCP mantidos pelas próprias empresas: Google Analytics e Ads, Meta Ads, HubSpot, Shopify, Notion, Slack, Canva e outros. E avisa que, a partir de dezembro, o MCP do Stripe deixa de aceitar chaves secretas de acesso total.",
+      "visual": "Uma tabela com cada servidor, o tipo de conexão, a autenticação e a cobrança, mais um alerta para a data de 30/11/2026.",
+      "para_vz": "Influenciadora de IA (Meta Ads e Canva para medir e criar posts) e sistemas sob medida que usam Stripe (trocar as chaves antes de dezembro).",
+      "esforco": "baixo",
+      "licenca": "",
+      "data": "2026-11-05",
+      "link": "https://www.digitalapplied.com/blog/official-mcp-servers-for-marketing-teams"
+    },
+    {
+      "categoria": "skill",
+      "titulo": "caveman: plugin que deixa as respostas curtas e economiza tokens",
+      "oque": "Plugin em alta que deixa as respostas do Claude Code bem enxutas, mas mantém os termos técnicos, o código e as mensagens de erro. Vem com skills de edição precisa, review e mensagem de commit.",
+      "visual": "Antes: três parágrafos explicando a mudança. Depois: duas linhas com o arquivo, o que mudou e o diff.",
+      "para_vz": "Rotina do Claude Code em todos os projetos, para gastar menos tokens.",
+      "esforco": "baixo",
+      "licenca": "Projeto no GitHub (JuliusBrussee)",
+      "data": "2026-11-05",
+      "link": "https://www.claudepluginhub.com/top-plugins"
+    },
+    {
+      "categoria": "skill",
+      "titulo": "document-skills e presentation-skills em alta",
+      "oque": "Pacotes de skills para criar e editar documentos e apresentações, entre os mais copiados da semana no ranking.",
+      "visual": "Você pede 'gere a proposta em PPTX com a identidade da VZ' e recebe o arquivo pronto, em vez de texto solto.",
+      "para_vz": "ContabIA (relatórios em PDF e XLSX) e as propostas comerciais da VZ.",
+      "esforco": "baixo",
+      "licenca": "Conferir no repositório",
+      "data": "2026-11-05",
+      "link": "https://www.claudepluginhub.com/top-plugins"
+    },
+    {
+      "categoria": "skill",
+      "titulo": "Humanizer, Grill Me e Handoff",
+      "oque": "Humanizer tira a cara de 'texto de IA', Grill Me faz o Claude te entrevistar antes de começar, e Handoff evita perder o fio de chats longos.",
+      "visual": "Antes: o post soa robótico. Depois: o texto fica natural. Com o Grill Me, o Claude abre a conversa com 5 perguntas em vez de sair codando.",
+      "para_vz": "Influenciadora de IA (legendas mais naturais) e levantamento de requisitos dos sistemas sob medida.",
+      "esforco": "baixo",
+      "licenca": "Projetos no GitHub",
+      "data": "2026-11-01",
+      "link": "https://artificialcorner.com/p/viral-claude-skills"
+    },
+    {
+      "categoria": "skill",
+      "titulo": "agent-skills do Addy Osmani (planejar antes de construir)",
+      "oque": "Skills que fazem o Claude escrever a especificação e o plano em arquivos e depois implementar aos poucos, em incrementos.",
+      "visual": "Antes de qualquer código aparecem os arquivos spec.md e tasks.md, com a lista de tarefas marcadas uma a uma.",
+      "para_vz": "Projetos sob medida e features grandes do ContabIA e do videoia.",
+      "esforco": "baixo",
+      "licenca": "Open source (github.com/addyosmani/agent-skills)",
+      "data": "2026-11-01",
+      "link": "https://artificialcorner.com/p/viral-claude-skills"
+    },
+    {
+      "categoria": "skill",
+      "titulo": "code-review-graph e CodeGraph",
+      "oque": "Ferramentas que indexam o código num grafo local para fazer review e explorar o código gastando bem menos tokens. As fontes falam em 6,8 vezes menos tokens no review e cerca de 35% de custo a menos.",
+      "visual": "Antes: o Claude lê dezenas de arquivos para entender um PR. Depois: consulta o grafo e vai direto às funções afetadas.",
+      "para_vz": "Repositórios grandes (ContabIA, ScanTE) para reviews mais baratos.",
+      "esforco": "medio",
+      "licenca": "Projetos no GitHub",
+      "data": "2026-11-01",
+      "link": "https://www.camilleroux.com/top-skills-plugins-claude-code-2026-v3/"
+    },
+    {
+      "categoria": "skill",
+      "titulo": "claude-seo e claude-hud",
+      "oque": "claude-seo faz auditoria de SEO e GEO e se liga ao Search Console e ao GA4. claude-hud mostra em tempo real o contexto, as ferramentas e os agentes em uso.",
+      "visual": "Um relatório de SEO com a lista de correções por página. No terminal, uma barra mostrando quanto do contexto já foi usado.",
+      "para_vz": "Sites dos clientes (auditoria de SEO como serviço extra) e acompanhar o uso do Claude Code.",
+      "esforco": "baixo",
+      "licenca": "Projetos no GitHub",
+      "data": "2026-11-01",
+      "link": "https://www.camilleroux.com/top-skills-plugins-claude-code-2026-v3/"
+    },
+    {
+      "categoria": "modelo",
+      "titulo": "Tencent Hy4 (texto, visão e controle do computador)",
+      "oque": "Novo modelo grande da Tencent com visão, controle do computador e contexto de cerca de 1 milhão de tokens. Por enquanto só existe via API (Tencent Cloud e OpenRouter), e os pesos finais foram apenas prometidos.",
+      "visual": "Você manda um print de tela e pede uma ação, e ele responde com os passos de clique. Custa cerca de US$ 0,834 por milhão de tokens de entrada.",
+      "para_vz": "Testar via OpenRouter como opção barata para tarefas de visão do ContabIA (ler documentos). Não roda na RTX 4090: o preview aberto tem cerca de 770 bilhões de parâmetros.",
+      "esforco": "baixo",
+      "licenca": "Pesos finais ainda não publicados. O preview de agosto saiu com pesos abertos.",
+      "data": "2026-11-04",
+      "link": "https://www.digitalapplied.com/blog/tencent-hy4-release-what-is-confirmed"
+    },
+    {
+      "categoria": "modelo",
+      "titulo": "Referência para a RTX 4090 em vídeo: Wan 2.2 TI2V-5B e HunyuanVideo 1.5 (não é lançamento da semana)",
+      "oque": "Não encontramos nenhum modelo aberto de vídeo lançado nesta semana. Para a 4090, os melhores já existentes são o Wan 2.2 TI2V-5B (720p na 4090) e o HunyuanVideo 1.5 (8,3 bilhões de parâmetros, cerca de 75 segundos por vídeo numa 4090).",
+      "visual": "Você escreve um prompt ou manda uma imagem no ComfyUI e sai um clipe curto em 720p gerado na própria máquina, sem pagar por segundo.",
+      "para_vz": "videoia e a influenciadora de IA, gerando clipes localmente na 4090 alugada. O Wan 2.2 pode ser usado comercialmente sem restrição.",
+      "esforco": "medio",
+      "licenca": "Wan 2.2: Apache 2.0 (roda na 4090, versão 5B). HunyuanVideo 1.5: Tencent Hunyuan",
+      "data": "2026-10-31",
+      "link": "https://pinggy.io/blog/best_video_generation_ai_models/"
+    },
+    {
+      "categoria": "ferramenta",
+      "titulo": "OpenAI Images 2.6 (GPT-Image-2.6 Flare e Sunburst)",
+      "oque": "Gera imagens 50% mais rápido, cria GIFs, edita com mais precisão e mantém o personagem mais consistente. Na API tem um parâmetro novo de 'complexidade'.",
+      "visual": "Com o Flare em qualidade baixa, a imagem fica pronta em cerca de 6 segundos. O Sunburst mantém o mesmo rosto em várias edições seguidas.",
+      "para_vz": "Influenciadora de IA (mesmo rosto em vários posts) e miniaturas para o videoia.",
+      "esforco": "baixo",
+      "licenca": "Proprietária. Cobrança por uso na API (preço na página da OpenAI).",
+      "data": "2026-11-04",
+      "link": "https://openai.com/index/introducing-images-2-6/"
+    },
+    {
+      "categoria": "ferramenta",
+      "titulo": "Android Studio aberto a mais de 40 agentes de código de terceiros",
+      "oque": "O Google abriu o Android Studio para mais de 40 agentes de programação de outras empresas.",
+      "visual": "Dentro do Android Studio aparece um painel em que você escolhe qual agente de IA vai editar o app.",
+      "para_vz": "ScanTE, se os coletores rodam Android. Vale ver se o Claude Code entra na lista para usá-lo direto na IDE.",
+      "esforco": "baixo",
+      "licenca": "Android Studio é gratuito (custo do agente à parte)",
+      "data": "2026-11-03",
+      "link": "https://aiagentstore.ai/ai-agent-news/this-week"
+    }
+  ]
+}

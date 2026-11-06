@@ -273,7 +273,7 @@ main:focus, main:focus-visible { outline: none; }
 .radar-top3 .top { display: flex; gap: .8rem; padding: 1.1rem; border-radius: var(--raio); color: #fff; background: linear-gradient(135deg, #1157EA, #0B40CE 60%, #0A2D89); }
 .radar-top3 .num { flex: none; display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: 50%; background: rgba(255, 255, 255, .2); font-weight: 700; }
 .radar-top3 h3 { margin: 0 0 .3rem; font-size: 1rem; color: #fff; }
-.radar-top3 p { margin: 0; font-size: .85rem; opacity: .9; }
+.radar-top3 p, .radar-top3 p b { margin: 0; font-size: .85rem; color: #fff; opacity: .92; }
 .radar-filtros { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
 .radar-filtros button { padding: .45rem .9rem; border-radius: 999px; border: 1.5px solid var(--borda); background: #fff; font: inherit; font-size: .85rem; cursor: pointer; }
 .radar-filtros button.ativo { background: var(--azul); border-color: var(--azul); color: #fff; }

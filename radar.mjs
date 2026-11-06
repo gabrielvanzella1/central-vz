@@ -26,7 +26,7 @@ export function validarRadar(bruto) {
   const txt = (v, n) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
   const link = (v) => { try { const u = new URL(v); return u.protocol === 'https:' ? u.toString() : ''; } catch { return ''; } };
   return {
-    resumo: txt(bruto?.resumo, 400),
+    resumo: txt(bruto?.resumo, 700),
     top3: (Array.isArray(bruto?.top3) ? bruto.top3 : [])
       .map((t) => ({ titulo: txt(t?.titulo, 120), primeiro_passo: txt(t?.primeiro_passo, 240) }))
       .filter((t) => t.titulo).slice(0, 3),
