@@ -761,5 +761,25 @@
         "texto": "criou na reorganização, com o Gabriel"
       }
     ]
+  },
+  {
+    "id": 64,
+    "titulo": "Enviar o resto das apresentações para a Luciane (SEM FALTA)",
+    "projeto": "geral",
+    "coluna": "a fazer",
+    "detalhe": "Pedido do Gabriel em 05/11 à noite: amanhã sem falta.",
+    "prioridade": "alta",
+    "prazo": "2026-11-06",
+    "criado": "2026-11-06T01:34:35.907Z",
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "liberada": false,
+    "linha": [
+      {
+        "em": "2026-11-06T01:34:35.908Z",
+        "por": "gabriel",
+        "texto": "criou e deixou com Gabriel"
+      }
+    ]
   }
 ]
