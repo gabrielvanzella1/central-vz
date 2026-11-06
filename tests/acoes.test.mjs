@@ -21,7 +21,7 @@ after(() => { process.chdir(raiz); fs.rmSync(tmp, { recursive: true, force: true
 
 test('criar_tarefa cria o cartão com padrões', async () => {
   const msg = await ia.executarAcao('criar_tarefa', { titulo: 'Testar', projeto: 'geral', coluna: 'ideias' }, dono);
-  assert.match(msg, /criado/);
+  assert.match(msg, /criada/);
   const [t] = ia.tarefas();
   assert.equal(t.titulo, 'Testar');
   assert.equal(t.prioridade, 'normal');
@@ -108,4 +108,42 @@ test('sugerir_melhoria_central guarda o passo a passo no cartão', async () => {
   assert.equal(t.projeto, 'central-vz');
   assert.equal(t.coluna, 'ideias');
   assert.match(t.detalhe, /Como desenvolver:\n1\. Abra ia\.mjs/);
+});
+
+test('tarefa com dono: passar, liberar, pegar, terminar, aprovar e devolver', async () => {
+  auth.criarUsuario({ usuario: dev.usuario, nome: 'Dev', papel: 'dev' });
+  await ia.executarAcao('criar_tarefa', { titulo: 'Tela de login', projeto: 'scante', coluna: 'a fazer', para: 'ninguem' }, dono);
+  const id = ia.tarefas().at(-1).id;
+  // dev não pega o que não foi liberado, nem passa tarefa para os outros
+  await assert.rejects(ia.executarAcao('pegar_tarefa', { id }, dev), /liberada/);
+  await assert.rejects(ia.executarAcao('passar_tarefa', { id, para: dev.usuario }, dev), /dono/);
+  await ia.executarAcao('passar_tarefa', { id, liberar: true }, dono);
+  assert.match(await ia.executarAcao('pegar_tarefa', { id }, dev), /com você/);
+  let t = ia.tarefas().find((x) => x.id === id);
+  assert.equal(t.responsavel, dev.usuario);
+  assert.equal(t.coluna, 'fazendo');
+  // dev não marca como pronto: termina e vai para o dono aprovar
+  await assert.rejects(ia.executarAcao('editar_tarefa', { id, coluna: 'feito' }, dev), /aprovar/);
+  assert.match(await ia.executarAcao('concluir_tarefa', { id, nota: 'feito com testes' }, dev), /aprovar/);
+  assert.equal(ia.tarefas().find((x) => x.id === id).coluna, 'aprovar');
+  await assert.rejects(ia.executarAcao('aprovar_tarefa', { id }, dev), /dono/);
+  await ia.executarAcao('devolver_tarefa', { id, motivo: 'falta o botão sair' }, dono);
+  t = ia.tarefas().find((x) => x.id === id);
+  assert.equal(t.coluna, 'fazendo');
+  assert.equal(t.responsavel, dev.usuario);
+  await ia.executarAcao('concluir_tarefa', { id }, dev);
+  await ia.executarAcao('aprovar_tarefa', { id }, dono);
+  t = ia.tarefas().find((x) => x.id === id);
+  assert.equal(t.coluna, 'feito');
+  const linha = t.linha.map((l) => l.texto).join(' | ');
+  assert.match(linha, /liberou.*pegou.*terminou: feito com testes.*devolveu: falta o botão sair.*aprovou/);
+});
+
+test('dev só mexe nas tarefas que estão com ele', async () => {
+  await ia.executarAcao('criar_tarefa', { titulo: 'Do Gabriel', projeto: 'geral', coluna: 'a fazer' }, dono);
+  const id = ia.tarefas().at(-1).id;
+  await assert.rejects(ia.executarAcao('editar_tarefa', { id, titulo: 'mudei' }, dev), /não está com você/);
+  await assert.rejects(ia.executarAcao('concluir_tarefa', { id }, dev), /não está com você/);
+  await ia.executarAcao('passar_tarefa', { id, para: 'agente' }, dono);
+  assert.match(await ia.executarAcao('listar_tarefas', { com: 'agente' }, dono), /Do Gabriel/);
 });

@@ -316,7 +316,7 @@ function falarNoNavegador(texto) {
 const limparParaFala = (t) => t.replace(/[*_#`>|]/g, '').replace(/\s-\s/g, ', ').replace(/https?:\/\/\S+/g, 'o link');
 const ROTULOS = {
   listar_projetos: 'consultou os projetos', definir_situacao_projeto: 'mudou a situação de um projeto', sugerir_proximo_passo: 'pensou no próximo passo', acatar_sugestao: 'acatou a sugestão',
-  listar_tarefas: 'olhou o quadro', criar_tarefa: 'criou um cartão', editar_tarefa: 'atualizou um cartão', apagar_tarefa: 'apagou um cartão',
+  listar_tarefas: 'olhou as tarefas', passar_tarefa: 'passou uma tarefa', pegar_tarefa: 'pegou uma tarefa', concluir_tarefa: 'concluiu uma tarefa', aprovar_tarefa: 'aprovou uma tarefa', devolver_tarefa: 'devolveu uma tarefa', criar_tarefa: 'criou um cartão', editar_tarefa: 'atualizou um cartão', apagar_tarefa: 'apagou um cartão',
   salvar_memoria: 'guardou na memória', esquecer_memoria: 'esqueceu uma memória', consultar_historico: 'consultou o histórico',
   mudar_aparencia: 'mudou de aparência', registrar_pratica: 'anotou a sua prática', ver_pratica: 'olhou a sua prática', salvar_nota_pessoal: 'guardou uma nota pessoal (só você vê)', ver_notas_pessoais: 'olhou as suas notas pessoais', esquecer_nota_pessoal: 'esqueceu uma nota pessoal',
   listar_estudos: 'olhou os estudos', criar_estudo: 'criou um material de estudo', sugerir_melhoria_central: 'anotou uma melhoria para a central', abrir_tela: 'abriu uma tela', ver_radar: 'olhou o radar de novidades',
@@ -571,7 +571,9 @@ function ligarNovaConversa(raiz, canal) {
 }
 
 // ---------------- telas ----------------
-const COLUNAS = ['ideias', 'a fazer', 'fazendo', 'feito'];
+const COLUNAS = ['ideias', 'a fazer', 'fazendo', 'aprovar', 'feito'];
+const ETAPA = { ideias: ['💡', 'Ideia'], 'a fazer': ['📌', 'Para fazer'], fazendo: ['🔨', 'Fazendo'], aprovar: ['👀', 'Esperando aprovação'], feito: ['✅', 'Pronto'] };
+const etapa = (c) => `${ETAPA[c]?.[0] || ''} ${ETAPA[c]?.[1] || c}`;
 const saudacao = () => { const h = new Date().getHours(); return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; };
 
 async function home() {
@@ -592,6 +594,8 @@ async function home() {
         <span class="pilula ${semGit ? 'alerta' : 'ok'}"><b>${semGit}</b>sem git</span>
       </div>
     </section>
+    <section class="hoje" aria-label="Hoje"></section>
+    <a class="dica-comando" href="#/estudos/comandos-do-claude">${dicaComandoHTML()}</a>
     <section class="areas">
       <a class="area a-radar" href="#/radar"><span class="radar-ico" aria-hidden="true">📡</span><div><h2>Radar de novidades</h2><p class="radar-resumo">O que saiu de novo em IA, todo dia às 7h.</p></div><span class="tag radar-tag">abrir</span></a>
       <div class="area a-conversa" data-tour="conversa">
@@ -601,7 +605,7 @@ async function home() {
         <p class="estado-voz">Toque na imagem para falar</p>
       </div>
       <a class="area a-quadro" href="#/quadro" data-tour="quadro">
-        <h2>Quadro</h2><p>O que fazer em cada projeto, das ideias ao feito.</p>
+        <h2>Todas as tarefas</h2><p>Cada tarefa com quem está e em que pé, das ideias ao pronto.</p>
         <div class="mini-quadro">${COLUNAS.map((c) => `<div><b>${porColuna[c]}</b><small>${c}</small></div>`).join('')}</div>
         <div class="barra" title="${feito}% feito"><span style="width:${feito}%"></span></div>
       </a>
@@ -624,6 +628,7 @@ async function home() {
       </a>
     </section>`;
   ligarTrocaAvatar();
+  desenharHoje(tela.querySelector('.hoje'), tarefas);
   api('/api/radar').then((d) => {
     const r = d.radar;
     if (!r) return;
@@ -717,13 +722,153 @@ function montarConversa(destino) {
 async function quadro() {
   const tarefas = await api('/api/tarefas');
   tela.innerHTML = `
-    <h1>Quadro</h1>
-    ${ajudaUmaVez('ajuda-quadro', `Dica: peça à IA “${esc(estado.nomeIA)}, move o cartão 2 para fazendo” ou “coloca o cartão 5 como prioridade alta”.`)}
+    <div class="titulo-acao"><h1>Todas as tarefas</h1><button type="button" class="btn nova-tarefa">+ Nova tarefa</button></div>
+    ${ajudaUmaVez('ajuda-quadro', `Cada coluna é uma etapa. Toque numa tarefa para ver com quem está e tudo o que aconteceu com ela. Ou peça: “${esc(estado.nomeIA)}, passa a tarefa 5 pro Derik”.`)}
     <div class="quadro">${COLUNAS.map((c) => {
       const cs = tarefas.filter((t) => t.coluna === c);
-      return `<section class="coluna"><h2>${c}<span>${cs.length}</span></h2>${cs.map((t) => `
-        <article class="cartao"><b>#${t.id} ${esc(t.titulo)}</b><small>${esc(t.projeto)}</small>${t.detalhe ? `<p>${esc(t.detalhe)}</p>` : ''}</article>`).join('')}</section>`;
+      return `<section class="coluna"><h2>${etapa(c)}<span>${cs.length}</span></h2>${cs.map(cartaoTarefa).join('')}</section>`;
     }).join('')}</div>`;
+  await carregarPessoas();
+  tela.querySelectorAll('[data-tarefa]').forEach((b) => b.addEventListener('click', () => abrirTarefa(Number(b.dataset.tarefa), tarefas)));
+  tela.querySelector('.nova-tarefa').addEventListener('click', () => novaTarefa());
+}
+
+// Dica de comando do dia: um comando por dia, para ir decorando (a cola completa fica nos Estudos)
+const COMANDOS_DIA = [
+  ['/novidades', 'o que saiu de novo em IA, em tabela', '/novidades vídeo'],
+  ['/analisar-reel', 'assiste a um reel e diz o que é verdade', '/analisar-reel <link do reel>'],
+  ['/grill-me', 'o Claude te sabatina até o plano ficar redondo', '/grill-me proposta da influenciadora'],
+  ['/handoff', 'resume a conversa para continuar no outro PC', '/handoff amanhã: agente da noite'],
+  ['/find-skills', 'procura uma skill pronta para a tarefa', '/find-skills edição de vídeo'],
+  ['/design-taste-frontend', 'deixa o visual profissional, sem cara de IA', '/design-taste-frontend tela do ScanTE'],
+  ['/redesign-existing-projects', 'repagina um sistema que já existe', '/redesign-existing-projects painel do ContabIA'],
+  ['/code-review', 'revisa o código antes de subir', '/code-review'],
+  ['/security-review', 'procura falhas de segurança', '/security-review'],
+  ['/schedule', 'agenda um agente na nuvem', '/schedule todo dia às 2h…'],
+  ['/loop', 'repete uma tarefa de tempos em tempos', '/loop 30m confere se o site está no ar'],
+  ['/compact', 'resume a conversa para ela durar mais', '/compact'],
+  ['/model', 'troca de modelo (Opus, Sonnet…)', '/model'],
+  ['/graphify', 'mapa de como o projeto se liga', '/graphify'],
+];
+function dicaComandoHTML() {
+  const dia = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60_000) / 86_400_000);
+  const [cmd, oque, ex] = COMANDOS_DIA[dia % COMANDOS_DIA.length];
+  return `<span class="dc-ico" aria-hidden="true">⌨️</span><span><b>Comando do dia: <code>${esc(cmd)}</code></b> ${esc(oque)}. Ex.: <code>${esc(ex)}</code></span><span class="dc-mais">ver todos →</span>`;
+}
+
+// ---------------- tarefas com dono (tela Hoje) ----------------
+let pessoas = [];
+async function carregarPessoas() { if (!pessoas.length) pessoas = await api('/api/pessoas').catch(() => []); return pessoas; }
+const nomeCurto = (u) => (u === 'agente' ? 'Agente (IA)' : u === eu?.usuario ? 'Você' : pessoas.find((p) => p.usuario === u)?.nome?.split(' ')[0] || u || 'Ninguém');
+const quemTem = (t) => (t.responsavel ? nomeCurto(t.responsavel) : t.liberada ? 'Liberada para a equipe' : 'Sem dono');
+const cartaoTarefa = (t) => `
+  <button type="button" class="cartao tarefa p-${esc(t.prioridade)}" data-tarefa="${t.id}">
+    <b>${esc(t.titulo)}</b>
+    <small>${esc(t.projeto)} · #${t.id}</small>
+    <span class="chips"><span class="chip dono">${t.responsavel === 'agente' ? '🤖' : '👤'} ${esc(quemTem(t))}</span>${t.prioridade === 'alta' ? '<span class="chip alta">alta</span>' : ''}${t.prazo ? `<span class="chip">até ${esc(t.prazo.split('-').reverse().slice(0, 2).join('/'))}</span>` : ''}</span>
+  </button>`;
+
+async function desenharHoje(alvo, tarefas) {
+  await carregarPessoas();
+  const abertas = tarefas.filter((t) => t.coluna !== 'feito');
+  const dono = eu.papel === 'dono';
+  const bloco = (titulo, lista, vazio) => `<div class="bloco-hoje"><h2>${titulo} <span>${lista.length}</span></h2>${lista.length ? lista.slice(0, 6).map(cartaoTarefa).join('') + (lista.length > 6 ? `<a href="#/quadro" class="mais">ver as outras ${lista.length - 6}</a>` : '') : `<p class="vazio">${vazio}</p>`}</div>`;
+  let blocos;
+  if (dono) {
+    const equipe = abertas.filter((t) => t.responsavel && t.responsavel !== eu.usuario && t.coluna !== 'aprovar');
+    const porPessoa = {};
+    equipe.forEach((t) => { (porPessoa[t.responsavel] ||= []).push(t); });
+    const liberadas = abertas.filter((t) => t.liberada && !t.responsavel);
+    blocos = bloco('👀 Esperando você aprovar', abertas.filter((t) => t.coluna === 'aprovar'), 'Nada para aprovar.')
+      + bloco('🙋 Com você', abertas.filter((t) => t.responsavel === eu.usuario && t.coluna !== 'ideias' && t.coluna !== 'aprovar'), 'Nada com você agora.')
+      + `<div class="bloco-hoje"><h2>👥 Com a equipe <span>${equipe.length}</span></h2>${Object.entries(porPessoa).map(([u, ts]) => `<h3>${esc(nomeCurto(u))} <span>${ts.length}</span></h3>${ts.slice(0, 3).map(cartaoTarefa).join('')}`).join('') || '<p class="vazio">Ninguém da equipe com tarefa.</p>'}${liberadas.length ? `<p class="liberadas">🎁 ${liberadas.length} liberada(s) esperando alguém pegar</p>` : ''}</div>`;
+  } else {
+    blocos = bloco('🙋 Com você', abertas.filter((t) => t.responsavel === eu.usuario && t.coluna !== 'aprovar'), 'Nada com você agora.')
+      + bloco('🎁 Liberadas para pegar', abertas.filter((t) => t.liberada && !t.responsavel), 'Nenhuma liberada agora.')
+      + bloco('⏳ Esperando o Gabriel aprovar', abertas.filter((t) => t.coluna === 'aprovar' && (t.feitaPor === eu.usuario || t.responsavel === eu.usuario)), 'Nada esperando aprovação.');
+  }
+  alvo.innerHTML = `<div class="hoje-topo"><h2>Hoje</h2><button type="button" class="btn nova-tarefa">+ Nova tarefa</button></div><div class="blocos-hoje">${blocos}</div>`;
+  alvo.querySelectorAll('[data-tarefa]').forEach((b) => b.addEventListener('click', () => abrirTarefa(Number(b.dataset.tarefa), tarefas)));
+  alvo.querySelector('.nova-tarefa').addEventListener('click', () => novaTarefa());
+}
+
+function janela(html) {
+  document.querySelector('dialog.janela')?.remove();
+  const d = document.createElement('dialog');
+  d.className = 'janela';
+  d.innerHTML = `<button type="button" class="fechar" aria-label="Fechar">✕</button>${html}`;
+  document.body.append(d);
+  d.querySelector('.fechar').addEventListener('click', () => d.close());
+  d.addEventListener('close', () => d.remove());
+  d.showModal();
+  return d;
+}
+async function acaoTarefa(nome, entrada) {
+  const r = await postar('/api/acao', { nome, entrada });
+  if (!r.ok) { alert(r.dados.erro || 'Não foi possível.'); return false; }
+  document.querySelector('dialog.janela')?.close();
+  rotear();
+  return true;
+}
+const opcoesPessoas = (atual) => `<option value="ninguem">Ninguém ainda</option>${pessoas.map((p) => `<option value="${esc(p.usuario)}" ${p.usuario === atual ? 'selected' : ''}>${esc(p.usuario === eu.usuario ? `Eu (${p.nome})` : p.nome)}</option>`).join('')}<option value="agente" ${atual === 'agente' ? 'selected' : ''}>🤖 Agente da noite (IA)</option>`;
+
+function abrirTarefa(id, tarefas) {
+  const t = tarefas.find((x) => x.id === id);
+  if (!t) return;
+  const dono = eu.papel === 'dono';
+  const minha = t.responsavel === eu.usuario || (!t.responsavel && t.por === eu.usuario);
+  const botoes = [];
+  if (dono && t.coluna === 'aprovar') botoes.push('<button type="button" class="btn" data-a="aprovar">✅ Aprovar</button>', '<button type="button" class="btn btn-claro" data-a="devolver">↩️ Devolver com ajuste</button>');
+  if (!dono && t.liberada && !t.responsavel) botoes.push('<button type="button" class="btn" data-a="pegar">🙋 Pegar para mim</button>');
+  if ((dono || minha) && t.coluna === 'a fazer') botoes.push('<button type="button" class="btn btn-claro" data-a="comecar">🔨 Comecei</button>');
+  if ((dono || minha) && ['a fazer', 'fazendo'].includes(t.coluna)) botoes.push(`<button type="button" class="btn" data-a="concluir">${dono ? '✅ Concluí' : '📤 Terminei (enviar para aprovar)'}</button>`);
+  const d = janela(`
+    <p class="etapa-tarefa">${etapa(t.coluna)}</p>
+    <h2>${esc(t.titulo)}</h2>
+    <p class="meta">${esc(t.projeto)} · #${t.id} · criada por ${esc(nomeCurto(t.por))}${t.prioridade === 'alta' ? ' · <b>prioridade alta</b>' : ''}${t.prazo ? ` · prazo ${esc(t.prazo.split('-').reverse().join('/'))}` : ''}</p>
+    <p class="com-quem">${t.responsavel === 'agente' ? '🤖' : '👤'} Está com: <b>${esc(quemTem(t))}</b></p>
+    ${t.detalhe ? `<p class="detalhe">${esc(t.detalhe)}</p>` : ''}
+    ${dono ? `<div class="passar"><label>Passar para <select class="sel-para">${opcoesPessoas(t.responsavel)}</select></label><button type="button" class="btn btn-claro" data-a="passar">Passar</button><label class="linha"><input type="checkbox" class="sel-liberada" ${t.liberada ? 'checked' : ''} /> Liberada para a equipe pegar</label></div>` : ''}
+    <div class="botoes-tarefa">${botoes.join('')}</div>
+    <h3>O que aconteceu</h3>
+    <ol class="linha-tempo">${(t.linha || []).slice().reverse().map((l) => `<li><b>${esc(nomeCurto(l.por))}</b> ${esc(l.texto)}<small>${new Date(l.em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</small></li>`).join('') || `<li>Criada em ${new Date(t.criado).toLocaleDateString('pt-BR')}${t.por ? ` por ${esc(nomeCurto(t.por))}` : ''}.</li>`}</ol>`);
+  d.querySelectorAll('[data-a]').forEach((b) => b.addEventListener('click', async () => {
+    const a = b.dataset.a;
+    if (a === 'aprovar') acaoTarefa('aprovar_tarefa', { id: t.id });
+    if (a === 'pegar') acaoTarefa('pegar_tarefa', { id: t.id });
+    if (a === 'comecar') acaoTarefa('editar_tarefa', { id: t.id, coluna: 'fazendo' });
+    if (a === 'passar') acaoTarefa('passar_tarefa', { id: t.id, para: d.querySelector('.sel-para').value });
+    if (a === 'devolver') { const motivo = prompt('O que falta ajustar?'); if (motivo) acaoTarefa('devolver_tarefa', { id: t.id, motivo }); }
+    if (a === 'concluir') { const nota = prompt('O que foi feito? (opcional)') ?? ''; acaoTarefa('concluir_tarefa', { id: t.id, nota }); }
+  }));
+  d.querySelector('.sel-liberada')?.addEventListener('change', (e) => acaoTarefa('passar_tarefa', { id: t.id, liberar: e.target.checked }));
+}
+
+async function novaTarefa() {
+  await carregarPessoas();
+  const projs = await api('/api/projetos').catch(() => []);
+  const nomes = ['geral', 'central-vz', ...projs.filter((p) => p.situacao === 'central').map((p) => p.nome)].filter((v, i, a) => a.indexOf(v) === i);
+  const dono = eu.papel === 'dono';
+  const d = janela(`
+    <h2>Nova tarefa</h2>
+    <form class="form-tarefa">
+      <label>O que precisa ser feito?<input name="titulo" required maxlength="140" placeholder="Ex.: tela de login do ScanTE" /></label>
+      <label>Projeto<select name="projeto">${nomes.map((n) => `<option>${esc(n)}</option>`).join('')}</select></label>
+      ${dono ? `<label>Com quem fica?<select name="para">${opcoesPessoas(eu.usuario)}</select></label><label class="linha"><input type="checkbox" name="liberada" /> Liberar para a equipe pegar</label>` : ''}
+      <label>Etapa<select name="coluna"><option value="a fazer">📌 Para fazer</option><option value="ideias">💡 Só uma ideia</option><option value="fazendo">🔨 Já estou fazendo</option></select></label>
+      <label class="linha"><input type="checkbox" name="alta" /> Prioridade alta</label>
+      <label>Prazo (opcional)<input type="date" name="prazo" /></label>
+      <label>Detalhes (opcional)<textarea name="detalhe" rows="3"></textarea></label>
+      <button class="btn" type="submit">Criar tarefa</button>
+    </form>`);
+  d.querySelector('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = e.target;
+    const entrada = { titulo: f.titulo.value, projeto: f.projeto.value, coluna: f.coluna.value, prioridade: f.alta.checked ? 'alta' : 'normal', detalhe: f.detalhe.value };
+    if (f.prazo.value) entrada.prazo = f.prazo.value;
+    if (dono) { entrada.para = f.para.value; entrada.liberada = f.liberada.checked; }
+    acaoTarefa('criar_tarefa', entrada);
+  });
 }
 
 const ABAS = { central: 'Na central', 'a escolher': 'A escolher', excluir: 'Para excluir' };

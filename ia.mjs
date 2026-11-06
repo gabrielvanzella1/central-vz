@@ -13,7 +13,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
-import { definirVersao } from './auth.mjs';
+import { definirVersao, lerUsuarios } from './auth.mjs';
 import { listarRadar, lerRadar } from './radar.mjs';
 import path from 'node:path';
 
@@ -132,11 +132,18 @@ async function gerarDica(nome, trocar, pessoa) {
 // ---------- AÇÕES: o que dá para fazer na central (tela e IA usam as mesmas) ----------
 // Cada ação tem: descrição (para a IA escolher certo), parâmetros, quem pode, e a função que faz.
 // "valida" confere os parâmetros: com streaming de entrada, o servidor não valida por nós.
-const COLUNAS = ['ideias', 'a fazer', 'fazendo', 'feito'];
+const COLUNAS = ['ideias', 'a fazer', 'fazendo', 'aprovar', 'feito']; // "aprovar" = terminada por alguém da equipe, esperando o dono aprovar
+// Quem pode ficar com uma tarefa: as pessoas da central, o agente da noite (IA) ou ninguém
+const ehDono = (p) => p.papel === 'dono';
+const pessoasValidas = () => [...lerUsuarios().map((u) => u.usuario), 'agente'];
+const nomeDe = (u) => (u === 'agente' ? 'o agente (IA)' : u ? (lerUsuarios().find((x) => x.usuario === u)?.nome || u) : 'ninguém');
+// Linha do tempo da tarefa: tudo o que aconteceu com ela, com quem e quando
+const marcar = (t, pessoa, texto) => { t.linha = [...(t.linha || []), { em: new Date().toISOString(), por: pessoa.usuario, texto }].slice(-60); };
+const podeMexer = (t, pessoa) => ehDono(pessoa) || t.responsavel === pessoa.usuario || (!t.responsavel && t.por === pessoa.usuario);
 const PRIORIDADES = ['alta', 'normal', 'baixa'];
 const dataValida = (d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d);
 const hojeISO = () => new Date().toLocaleDateString('sv-SE'); // AAAA-MM-DD no fuso local
-const linhaTarefa = (t) => `#${t.id} [${t.coluna}] (${t.projeto})${t.prioridade === 'alta' ? ' PRIORIDADE ALTA' : t.prioridade === 'baixa' ? ' (baixa)' : ''}${t.prazo ? ` prazo ${t.prazo}` : ''} ${t.titulo}${t.detalhe ? ` — ${t.detalhe}` : ''}`;
+const linhaTarefa = (t) => `#${t.id} [${t.coluna === 'aprovar' ? 'esperando aprovação' : t.coluna}] (${t.projeto}) com: ${nomeDe(t.responsavel)}${t.liberada && !t.responsavel ? ' (liberada para a equipe)' : ''}${t.prioridade === 'alta' ? ' PRIORIDADE ALTA' : t.prioridade === 'baixa' ? ' (baixa)' : ''}${t.prazo ? ` prazo ${t.prazo}` : ''} ${t.titulo}${t.detalhe ? ` — ${t.detalhe}` : ''}`;
 const TELAS = ['inicio', 'conversa', 'quadro', 'projetos', 'estudos', 'memoria', 'historico', 'radar'];
 const texto = (v) => typeof v === 'string' && v.trim() !== '';
 const exigir = (cond, msg) => { if (!cond) throw new Error(msg); };
@@ -146,28 +153,37 @@ const achar = (lista, id) => { const t = lista.find((x) => x.id === Number(id));
 const ACOES = {
   // ----- quadro -----
   listar_tarefas: {
-    descricao: 'Lista os cartões do quadro (Kanban), com prioridade e prazo, opcionalmente de um projeto, de uma coluna ou só as prioridades. Use para "o que é prioridade hoje", "o que está atrasado", "o que falta no projeto X".',
-    parametros: obj({ projeto: { type: 'string' }, coluna: { type: 'string', enum: COLUNAS }, so_prioridades: { type: 'boolean', description: 'Só prioridade alta ou com prazo até hoje, fora de "feito"' } }),
-    fazer: (e) => {
+    descricao: 'Lista as tarefas, com quem está cada uma, prioridade e prazo. Filtros: projeto, coluna (ideias, a fazer, fazendo, aprovar = esperando aprovação, feito), com quem está ("eu" = quem está falando, um usuário, "agente" ou "ninguem"), só as prioridades. Use para "o que é prioridade hoje", "o que está comigo", "o que o Derik está fazendo", "o que está esperando eu aprovar".',
+    parametros: obj({ projeto: { type: 'string' }, coluna: { type: 'string', enum: COLUNAS }, com: { type: 'string', description: '"eu", um usuário (ex.: derik), "agente" ou "ninguem"' }, so_prioridades: { type: 'boolean', description: 'Só prioridade alta ou com prazo até hoje, fora de "feito"' } }),
+    fazer: (e, pessoa) => {
       const hoje = hojeISO();
+      const com = e.com === 'eu' ? pessoa.usuario : e.com === 'ninguem' ? null : e.com;
       return tarefas().filter((t) => (!e.projeto || t.projeto === e.projeto) && (!e.coluna || t.coluna === e.coluna)
+        && (e.com === undefined || (t.responsavel || null) === com)
         && (!e.so_prioridades || (t.coluna !== 'feito' && (t.prioridade === 'alta' || (t.prazo && t.prazo <= hoje)))))
         .map(linhaTarefa).join('\n') || 'Nenhum cartão.';
     },
   },
   criar_tarefa: {
     descricao: `Cria um cartão no quadro. Colunas: ${COLUNAS.join(', ')}. Pensamentos soltos vão para "ideias"; coisas decididas para "a fazer". Prioridade: ${PRIORIDADES.join(', ')} (padrão normal). Prazo opcional, AAAA-MM-DD ("hoje", "sexta" viram data).`,
-    parametros: obj({ titulo: { type: 'string' }, projeto: { type: 'string', description: 'Nome do projeto, ou "geral"' }, coluna: { type: 'string', enum: COLUNAS }, detalhe: { type: 'string' }, prioridade: { type: 'string', enum: PRIORIDADES }, prazo: { type: 'string', description: 'AAAA-MM-DD' } }, ['titulo', 'projeto', 'coluna']),
+    parametros: obj({ titulo: { type: 'string' }, projeto: { type: 'string', description: 'Nome do projeto, ou "geral"' }, coluna: { type: 'string', enum: COLUNAS }, detalhe: { type: 'string' }, prioridade: { type: 'string', enum: PRIORIDADES }, prazo: { type: 'string', description: 'AAAA-MM-DD' }, para: { type: 'string', description: 'Com quem fica: "eu", um usuário, "agente" ou "ninguem" (padrão: quem criou)' }, liberada: { type: 'boolean', description: 'Liberada para qualquer dev pegar (só o dono)' } }, ['titulo', 'projeto', 'coluna']),
     fazer: (e, pessoa) => {
       exigir(texto(e.titulo) && texto(e.projeto) && COLUNAS.includes(e.coluna), 'título, projeto e coluna são obrigatórios');
+      exigir(e.coluna !== 'feito' && e.coluna !== 'aprovar', 'uma tarefa nova começa em ideias, a fazer ou fazendo');
+      const para = e.para === undefined || e.para === 'eu' ? pessoa.usuario : e.para === 'ninguem' ? null : e.para;
+      exigir(para === null || para === pessoa.usuario || pessoasValidas().includes(para), 'pessoa inválida');
+      exigir(ehDono(pessoa) || para === pessoa.usuario || para === null, 'só o Gabriel passa tarefas para outra pessoa');
+      exigir(ehDono(pessoa) || !e.liberada, 'só o Gabriel libera tarefas para a equipe');
       exigir(!e.prioridade || PRIORIDADES.includes(e.prioridade), 'prioridade inválida');
       exigir(!e.prazo || dataValida(e.prazo), 'prazo deve ser AAAA-MM-DD');
       const lista = tarefas();
       const id = lista.reduce((m, t) => Math.max(m, t.id), 0) + 1;
-      lista.push({ id, titulo: e.titulo.trim(), projeto: e.projeto.trim(), coluna: e.coluna, detalhe: (e.detalhe || '').trim(), prioridade: e.prioridade || 'normal', prazo: e.prazo || null, criado: new Date().toISOString(), por: pessoa.usuario });
+      const t = { id, titulo: e.titulo.trim(), projeto: e.projeto.trim(), coluna: e.coluna, detalhe: (e.detalhe || '').trim(), prioridade: e.prioridade || 'normal', prazo: e.prazo || null, criado: new Date().toISOString(), por: pessoa.usuario, responsavel: para, liberada: Boolean(e.liberada) };
+      marcar(t, pessoa, `criou${para ? ` e deixou com ${nomeDe(para)}` : ''}${t.liberada ? ', liberada para a equipe' : ''}`);
+      lista.push(t);
       gravar('tarefas.json', lista);
       registrar(pessoa, 'cartao_criado', `#${id} ${e.titulo}`, { projeto: e.projeto, coluna: e.coluna });
-      return `Cartão #${id} criado em "${e.coluna}".`;
+      return `Tarefa #${id} criada em "${e.coluna}", com ${nomeDe(para)}.`;
     },
   },
   editar_tarefa: {
@@ -176,6 +192,8 @@ const ACOES = {
     fazer: (e, pessoa) => {
       const lista = tarefas();
       const t = achar(lista, e.id);
+      exigir(podeMexer(t, pessoa), 'essa tarefa não está com você; peça ao Gabriel');
+      exigir(ehDono(pessoa) || !['feito', 'aprovar'].includes(e.coluna), 'para entregar, use concluir_tarefa: ela vai para o Gabriel aprovar');
       const antes = t.coluna;
       if (texto(e.titulo)) t.titulo = e.titulo.trim();
       if (typeof e.detalhe === 'string') t.detalhe = e.detalhe.trim();
@@ -183,6 +201,7 @@ const ACOES = {
       if (e.coluna !== undefined) { exigir(COLUNAS.includes(e.coluna), 'coluna inválida'); t.coluna = e.coluna; }
       if (e.prioridade !== undefined) { exigir(PRIORIDADES.includes(e.prioridade), 'prioridade inválida'); t.prioridade = e.prioridade; }
       if (e.prazo !== undefined) { exigir(e.prazo === '' || dataValida(e.prazo), 'prazo deve ser AAAA-MM-DD'); t.prazo = e.prazo || null; }
+      marcar(t, pessoa, antes !== t.coluna ? `moveu de "${antes}" para "${t.coluna}"` : 'editou');
       gravar('tarefas.json', lista);
       registrar(pessoa, antes !== t.coluna ? 'cartao_movido' : 'cartao_editado', antes !== t.coluna ? `#${t.id} ${t.titulo}: ${antes} → ${t.coluna}` : `#${t.id} ${t.titulo}`, { projeto: t.projeto });
       return `Cartão #${t.id} atualizado${antes !== t.coluna ? `, agora em "${t.coluna}"` : ''}.`;
@@ -194,9 +213,101 @@ const ACOES = {
     fazer: (e, pessoa) => {
       const lista = tarefas();
       const t = achar(lista, e.id);
+      exigir(ehDono(pessoa) || t.por === pessoa.usuario, 'só o Gabriel ou quem criou apaga uma tarefa');
       gravar('tarefas.json', lista.filter((x) => x !== t));
       registrar(pessoa, 'cartao_apagado', `#${t.id} ${t.titulo}`, { projeto: t.projeto });
       return `Cartão #${t.id} apagado.`;
+    },
+  },
+
+  passar_tarefa: {
+    descricao: 'Só o dono (Gabriel): passa uma tarefa para alguém ("eu", um usuário como derik ou mateus, "agente" para o agente da noite, ou "ninguem") e/ou libera para qualquer dev da equipe pegar.',
+    dono: true,
+    parametros: obj({ id: { type: 'integer' }, para: { type: 'string', description: '"eu", um usuário, "agente" ou "ninguem"' }, liberar: { type: 'boolean', description: 'true libera para a equipe pegar; false recolhe' } }, ['id']),
+    fazer: (e, pessoa) => {
+      const lista = tarefas();
+      const t = achar(lista, e.id);
+      const avisos = [];
+      if (e.para !== undefined) {
+        const para = e.para === 'eu' ? pessoa.usuario : e.para === 'ninguem' ? null : e.para;
+        exigir(para === null || pessoasValidas().includes(para), 'pessoa inválida');
+        t.responsavel = para;
+        if (t.coluna === 'ideias' && para) t.coluna = 'a fazer';
+        marcar(t, pessoa, `passou para ${nomeDe(para)}`);
+        avisos.push(`agora está com ${nomeDe(para)}`);
+      }
+      if (e.liberar !== undefined) {
+        t.liberada = Boolean(e.liberar);
+        marcar(t, pessoa, t.liberada ? 'liberou para a equipe' : 'recolheu (não está mais liberada)');
+        avisos.push(t.liberada ? 'liberada para a equipe' : 'não está mais liberada');
+      }
+      exigir(avisos.length, 'diga para quem passar ou se libera');
+      gravar('tarefas.json', lista);
+      registrar(pessoa, 'tarefa_passada', `#${t.id} ${t.titulo}: ${avisos.join(', ')}`, { projeto: t.projeto });
+      return `Tarefa #${t.id}: ${avisos.join(', ')}.`;
+    },
+  },
+  pegar_tarefa: {
+    descricao: 'A pessoa que está falando pega para si uma tarefa liberada pelo Gabriel que ainda está sem dono.',
+    parametros: obj({ id: { type: 'integer' } }, ['id']),
+    fazer: (e, pessoa) => {
+      const lista = tarefas();
+      const t = achar(lista, e.id);
+      exigir(!t.responsavel, `essa tarefa já está com ${nomeDe(t.responsavel)}`);
+      exigir(ehDono(pessoa) || t.liberada, 'essa tarefa ainda não foi liberada pelo Gabriel');
+      t.responsavel = pessoa.usuario;
+      if (['ideias', 'a fazer'].includes(t.coluna)) t.coluna = 'fazendo';
+      marcar(t, pessoa, 'pegou a tarefa');
+      gravar('tarefas.json', lista);
+      registrar(pessoa, 'tarefa_pega', `#${t.id} ${t.titulo}`, { projeto: t.projeto });
+      return `Tarefa #${t.id} agora está com você, em "fazendo".`;
+    },
+  },
+  concluir_tarefa: {
+    descricao: 'Marca que terminou a tarefa. Se quem terminou é da equipe, ela vai para "esperando aprovação" do Gabriel; se é o Gabriel, fica pronta. Pode levar uma nota do que foi feito.',
+    parametros: obj({ id: { type: 'integer' }, nota: { type: 'string', description: 'O que foi feito, em uma frase' } }, ['id']),
+    fazer: (e, pessoa) => {
+      const lista = tarefas();
+      const t = achar(lista, e.id);
+      exigir(podeMexer(t, pessoa), 'essa tarefa não está com você');
+      t.coluna = ehDono(pessoa) ? 'feito' : 'aprovar';
+      t.feitaPor = t.responsavel || pessoa.usuario;
+      marcar(t, pessoa, `terminou${texto(e.nota) ? `: ${e.nota.trim().slice(0, 300)}` : ''}${ehDono(pessoa) ? '' : ' (esperando o Gabriel aprovar)'}`);
+      gravar('tarefas.json', lista);
+      registrar(pessoa, 'tarefa_concluida', `#${t.id} ${t.titulo}`, { projeto: t.projeto });
+      return ehDono(pessoa) ? `Tarefa #${t.id} pronta.` : `Tarefa #${t.id} enviada para o Gabriel aprovar.`;
+    },
+  },
+  aprovar_tarefa: {
+    descricao: 'Só o dono: aprova uma tarefa que está esperando aprovação; ela fica pronta.',
+    dono: true,
+    parametros: obj({ id: { type: 'integer' } }, ['id']),
+    fazer: (e, pessoa) => {
+      const lista = tarefas();
+      const t = achar(lista, e.id);
+      exigir(t.coluna === 'aprovar', 'essa tarefa não está esperando aprovação');
+      t.coluna = 'feito';
+      marcar(t, pessoa, 'aprovou');
+      gravar('tarefas.json', lista);
+      registrar(pessoa, 'tarefa_aprovada', `#${t.id} ${t.titulo}`, { projeto: t.projeto });
+      return `Tarefa #${t.id} aprovada e pronta.`;
+    },
+  },
+  devolver_tarefa: {
+    descricao: 'Só o dono: devolve uma tarefa que estava esperando aprovação para quem fez, com o motivo (o que falta ajustar).',
+    dono: true,
+    parametros: obj({ id: { type: 'integer' }, motivo: { type: 'string' } }, ['id', 'motivo']),
+    fazer: (e, pessoa) => {
+      exigir(texto(e.motivo), 'diga o que falta ajustar');
+      const lista = tarefas();
+      const t = achar(lista, e.id);
+      exigir(t.coluna === 'aprovar', 'essa tarefa não está esperando aprovação');
+      t.coluna = 'fazendo';
+      t.responsavel = t.feitaPor || t.responsavel;
+      marcar(t, pessoa, `devolveu: ${e.motivo.trim().slice(0, 300)}`);
+      gravar('tarefas.json', lista);
+      registrar(pessoa, 'tarefa_devolvida', `#${t.id} ${t.titulo}`, { projeto: t.projeto });
+      return `Tarefa #${t.id} devolvida para ${nomeDe(t.responsavel)}.`;
     },
   },
 
@@ -438,6 +549,9 @@ Como agir:
 - Ideia solta vira cartão em "ideias"; fato duradouro do trabalho vai para a memória da equipe (nunca coisas pessoais: essas vão em salvar_nota_pessoal).
 - Antes de afirmar algo sobre projetos, quadro ou histórico, consulte as ferramentas.
 - "Prioridade de hoje" = cartões com prioridade alta ou prazo até hoje, fora de "feito" (listar_tarefas com so_prioridades).
+- Tarefas têm dono: cada uma está com alguém (Gabriel, Derik, Mateus, o agente da noite) ou com ninguém. Fale assim, sem jargão de Kanban: "está com o Derik", "esperando você aprovar", "liberada para a equipe".
+- O Gabriel passa e libera tarefas (passar_tarefa). Os devs pegam só as liberadas (pegar_tarefa). Quem termina usa concluir_tarefa: se for da equipe, vai para o Gabriel aprovar (aprovar_tarefa ou devolver_tarefa com o motivo).
+- "Passa pro agente" = passar_tarefa com para "agente": o agente da noite pega e abre um Pull Request.
 
 Presença e humor (importante):
 - Preste atenção em como a pessoa está, pelas palavras, pelo ritmo e pelo contexto (você não escuta o tom de voz, só o texto). Não conclua por uma palavra solta; na dúvida, pergunte com delicadeza.

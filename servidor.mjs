@@ -7,7 +7,7 @@ import dns from 'node:dns/promises';
 import { listarRadar, lerRadar, gerarRadar, agendarRadar, radarRodando, perfis } from './radar.mjs';
 import Anthropic from '@anthropic-ai/sdk';
 import { conversar, historico, novaConversa, todosProjetos, executarAcao, listaEstudos, tarefas, memorias, dicas, dicaProjeto, acatarDica, registrar, atividades } from './ia.mjs';
-import { entrar, quemE, sair, trocarSenha, marcarVisto, definirVersao, encerrarSessoes, configurarEmergencia, removerEmergencia, statusEmergencia, recuperar, cookieSessao, cookieApagar } from './auth.mjs';
+import { lerUsuarios, entrar, quemE, sair, trocarSenha, marcarVisto, definirVersao, encerrarSessoes, configurarEmergencia, removerEmergencia, statusEmergencia, recuperar, cookieSessao, cookieApagar } from './auth.mjs';
 
 const PORTA = Number(process.env.PORTA || 8790);
 const ESTUDOS = path.join('conteudo', 'estudos');
@@ -60,7 +60,7 @@ function respostaDeCoacao(req, res, rota, eu) {
     if (rota === '/api/eu') return json(res, { usuario: eu.usuario, nome: eu.nome, papel: eu.papel, trocarSenha: false, vistos: eu.vistos, versao: eu.versao });
     if (rota === '/api/dicas') return json(res, {});
     if (rota.startsWith('/api/estudos/')) return json(res, { erro: 'não encontrado' }, 404);
-    if (['/api/tarefas', '/api/projetos', '/api/memoria', '/api/historico', '/api/estudos', '/api/conversa'].includes(rota)) return json(res, []);
+    if (['/api/tarefas', '/api/pessoas', '/api/projetos', '/api/memoria', '/api/historico', '/api/estudos', '/api/conversa'].includes(rota)) return json(res, []);
     return json(res, { erro: 'Indisponível no momento.' }, 503);
   }
   if (rota === '/api/versao' || rota === '/api/visto') return json(res, { ok: true });
@@ -141,6 +141,7 @@ async function api(req, res, url) {
     try { return json(res, { mensagem: await executarAcao(nome, entrada || {}, eu) }); } catch (erro) { return json(res, { erro: erro.message }, 400); }
   }
   if (req.method === 'GET' && rota === '/api/tarefas') return json(res, tarefas());
+  if (req.method === 'GET' && rota === '/api/pessoas') return json(res, lerUsuarios().map((u) => ({ usuario: u.usuario, nome: u.nome, papel: u.papel })));
   if (req.method === 'GET' && rota === '/api/dicas') return json(res, dicas());
   // Voz premium: o texto vai para a ElevenLabs e o áudio (mp3) volta para o navegador tocar.
   // A chave fica só no servidor; sem ela, o navegador usa a própria voz.

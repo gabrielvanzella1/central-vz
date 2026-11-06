@@ -1,19 +1,35 @@
 [
   {
     "id": 1,
-    "coluna": "fazendo",
+    "coluna": "feito",
     "titulo": "Versão básica da central (conversa por voz, estudos, projetos, quadro)",
     "detalhe": "Feito pelo Claude em 04/11. Testar com a chave do Claude.",
     "projeto": "central-vz",
-    "criado": "2026-11-04T22:36:01.340Z"
+    "criado": "2026-11-04T22:36:01.340Z",
+    "responsavel": "gabriel",
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "marcou como pronto na reorganização (já estava feito)"
+      }
+    ]
   },
   {
     "id": 2,
-    "coluna": "a fazer",
+    "coluna": "feito",
     "titulo": "Colocar a chave do Claude no .env",
     "detalhe": "console.anthropic.com: criar a chave, definir limite de gasto mensal, colar em ANTHROPIC_API_KEY no .env (nunca no chat nem no git).",
     "projeto": "central-vz",
-    "criado": "2026-11-04T22:36:01.340Z"
+    "criado": "2026-11-04T22:36:01.340Z",
+    "responsavel": "gabriel",
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "marcou como pronto na reorganização (já estava feito)"
+      }
+    ]
   },
   {
     "id": 3,
@@ -21,7 +37,15 @@
     "titulo": "Rodar o inventário no PC do trabalho",
     "detalhe": "No PC do trabalho: git pull da central e npm run inventario. A IA passa a ver os projetos de lá.",
     "projeto": "central-vz",
-    "criado": "2026-11-04T22:36:01.340Z"
+    "criado": "2026-11-04T22:36:01.340Z",
+    "responsavel": "gabriel",
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "deixou com o Gabriel na reorganização"
+      }
+    ]
   },
   {
     "id": 4,
@@ -29,7 +53,16 @@
     "titulo": "Exercício: ferramenta contar_tarefas",
     "detalhe": "Para o Gabriel fazer: ver o material Como a Central funciona por dentro, seção Exercício.",
     "projeto": "central-vz",
-    "criado": "2026-11-04T22:36:01.340Z"
+    "criado": "2026-11-04T22:36:01.340Z",
+    "responsavel": null,
+    "liberada": true,
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "liberou para a equipe (exercício para os devs)"
+      }
+    ]
   },
   {
     "id": 5,
@@ -37,7 +70,16 @@
     "titulo": "Exercício: desenhar a ferramenta publicar_site com aprovação",
     "detalhe": "Parâmetros, descrição e onde pedir a aprovação humana (material Agentes de IA, exercício 2).",
     "projeto": "central-vz",
-    "criado": "2026-11-04T22:36:01.340Z"
+    "criado": "2026-11-04T22:36:01.340Z",
+    "responsavel": null,
+    "liberada": true,
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "liberou para a equipe (exercício para os devs)"
+      }
+    ]
   },
   {
     "id": 6,
@@ -61,7 +103,15 @@
     "titulo": "Avisos e aprovações pelo WhatsApp",
     "detalhe": "Celular da empresa (o mesmo do AprovIA, agora da VZ). Passos: 1) Gabriel desconecta o número do ContabIA (ponte Baileys em ContabIA/tools/whatsapp-ponte); 2) a central reaproveita essa ponte e pareia o número lendo o QR code; 3) só o número do Gabriel (e depois Derik e Mateus) é atendido; 4) mensagens só de trabalho. Risco: a API não oficial pode levar ban; depois migrar para a API oficial.",
     "projeto": "central-vz",
-    "criado": "2026-11-04T22:36:01.340Z"
+    "criado": "2026-11-04T22:36:01.340Z",
+    "responsavel": "gabriel",
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "deixou com o Gabriel na reorganização"
+      }
+    ]
   },
   {
     "id": 9,
@@ -206,7 +256,15 @@
     "projeto": "central-vz",
     "coluna": "a fazer",
     "detalhe": "Gerente, Dev, Revisor e Publicador. Cada um com função, ferramentas permitidas e o que precisa de aprovação. Atribuir cartão a um agente, ver o andamento e o histórico. Execução real pelo Claude Agent SDK na máquina onde está o projeto.",
-    "criado": "2026-11-04T22:47:17.302Z"
+    "criado": "2026-11-04T22:47:17.302Z",
+    "responsavel": "gabriel",
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "deixou com o Gabriel na reorganização"
+      }
+    ]
   },
   {
     "id": 27,
@@ -296,7 +354,15 @@
     "prioridade": "alta",
     "detalhe": "Segurança. ssh-keygen -p -f ~/.ssh/<chave>. Elas abrem os servidores da Hostinger.",
     "criado": "2026-11-04T23:37:24.291Z",
-    "por": "gabriel"
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "deixou com o Gabriel na reorganização"
+      }
+    ]
   },
   {
     "id": 37,
@@ -306,7 +372,15 @@
     "prioridade": "alta",
     "detalhe": "Material Padrão de Segurança da VZ, na Central de Estudos.",
     "criado": "2026-11-04T23:37:24.291Z",
-    "por": "gabriel"
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "deixou com o Gabriel na reorganização"
+      }
+    ]
   },
   {
     "id": 38,
@@ -316,7 +390,15 @@
     "prioridade": "alta",
     "detalhe": "Quando os devs ou os agentes precisam de decisão: a IA explica em linguagem simples, com opções; aparece em Decisões na home; a resposta libera o trabalho.",
     "criado": "2026-11-04T23:37:24.291Z",
-    "por": "gabriel"
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "deixou com o Gabriel na reorganização"
+      }
+    ]
   },
   {
     "id": 39,
@@ -326,7 +408,15 @@
     "prioridade": "normal",
     "detalhe": "Pasta, git, CLAUDE.md inicial e o projeto já entra na central.",
     "criado": "2026-11-04T23:37:24.291Z",
-    "por": "gabriel"
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "deixou com o Gabriel na reorganização"
+      }
+    ]
   },
   {
     "id": 40,
@@ -409,7 +499,15 @@
     "prazo": null,
     "detalhe": "Pedido do Gabriel. Precisa de um modelo .vrm da personagem (VRoid Studio é grátis, ou encomendar). Motor: three.js + three-vrm, boca seguindo o áudio da voz premium e o texto na voz do navegador; piscar, respirar. O modelo entra em public/vz/.",
     "criado": "2026-11-05T00:11:34.764Z",
-    "por": "gabriel"
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "deixou com o Gabriel na reorganização"
+      }
+    ]
   },
   {
     "id": 48,
@@ -431,7 +529,15 @@
     "prazo": null,
     "detalhe": "Etapa 1: abrir a central no Chrome do Android por uma rede privada (Tailscale + HTTPS): a conversa por voz já funciona. Etapa 2: áudios do WhatsApp (API oficial, quando aprovada) com transcrição local (faster-whisper), porque o Claude não ouve áudio. Tudo que ela não conseguir vira cartão com passo a passo para desenvolver (já implementado).",
     "criado": "2026-11-05T00:22:25.039Z",
-    "por": "gabriel"
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "deixou com o Gabriel na reorganização"
+      }
+    ]
   },
   {
     "id": 50,
@@ -442,7 +548,15 @@
     "prazo": null,
     "detalhe": "Rede privada para o celular alcançar a central sem abrir a internet. A central continua só em 127.0.0.1; o tailscale serve entrega por HTTPS dentro da rede privada.",
     "criado": "2026-11-05T00:22:25.039Z",
-    "por": "gabriel"
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "deixou com o Gabriel na reorganização"
+      }
+    ]
   },
   {
     "id": 51,
@@ -464,7 +578,15 @@
     "prazo": null,
     "detalhe": "Página Segurança > Celular: checklist de preparação (Encontre meu dispositivo ativo, códigos de backup do Google, IMEI anotado, PIN do chip, contato de confiança) e passos de emergência com links (Encontre meu dispositivo: localizar, travar e apagar; Celular Seguro do governo: bloqueia IMEI, linha e apps de bancos; operadora; bancos e Pix; WhatsApp; trocar senha do Google e sair de todos os dispositivos). Botão que encerra as sessões e revoga os tokens da central. Mostra a última localização conhecida se houver rastreio. Não depender da central estar no ar: usar serviços oficiais.",
     "criado": "2026-11-05T00:22:25.039Z",
-    "por": "gabriel"
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "deixou com o Gabriel na reorganização"
+      }
+    ]
   },
   {
     "id": 53,
@@ -497,7 +619,15 @@
     "prioridade": "normal",
     "prazo": null,
     "criado": "2026-11-05T00:32:25.617Z",
-    "por": "gabriel"
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "deixou com o Gabriel na reorganização"
+      }
+    ]
   },
   {
     "id": 56,
@@ -531,5 +661,105 @@
     "prazo": null,
     "criado": "2026-11-05T00:42:12.592Z",
     "por": "gabriel"
+  },
+  {
+    "id": 59,
+    "titulo": "Projeto da influenciadora de IA (Daniele): fechar proposta e montar o fluxo",
+    "projeto": "influenciadora-daniele",
+    "coluna": "a fazer",
+    "detalhe": "Proposta sem valor pronta em C:/xampp/htdocs/propostas-vz/daniele-veiga (fora do git, só no PC de casa). Próximo: definir o preço e testar 1 vídeo completo (LoRA do rosto + voz + vídeo) antes de fechar.",
+    "prioridade": "alta",
+    "prazo": null,
+    "criado": "2026-11-06T01:26:03.772Z",
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "liberada": false,
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "criou na reorganização, com o Gabriel"
+      }
+    ]
+  },
+  {
+    "id": 60,
+    "titulo": "Contratar a NOAR Ultra GPU (mandar as 12 perguntas e pedir o contrato B2B)",
+    "projeto": "geral",
+    "coluna": "a fazer",
+    "detalhe": "Plano Ultra mensal R$ 1.160 (GPU dedicada só na sessão agendada). Confirmar horas por mês, arquivos salvos entre sessões e LGPD. Bare Metal (R$ 2.000 a 3.200) só se precisar de 24h. https://noarcloud.com/ultra-gpu",
+    "prioridade": "alta",
+    "prazo": null,
+    "criado": "2026-11-06T01:26:03.772Z",
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "liberada": false,
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "criou na reorganização, com o Gabriel"
+      }
+    ]
+  },
+  {
+    "id": 61,
+    "titulo": "Máquina de edição de vídeo: instalar o HyperFrames e editar o 1º vídeo cru",
+    "projeto": "videoia",
+    "coluna": "a fazer",
+    "detalhe": "No Claude Code: /plugin marketplace add heygen-com/hyperframes e /plugin install hyperframes@hyperframes (revisar antes). Gravar 30 a 60 s de vídeo cru para o teste.",
+    "prioridade": "normal",
+    "prazo": null,
+    "criado": "2026-11-06T01:26:03.772Z",
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "liberada": false,
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "criou na reorganização, com o Gabriel"
+      }
+    ]
+  },
+  {
+    "id": 62,
+    "titulo": "Instagram da VZ: conta profissional + app da Meta (leads pelos comentários e radar dos influencers)",
+    "projeto": "geral",
+    "coluna": "a fazer",
+    "detalhe": "Conferir se a conta é profissional e ligada a uma página do Facebook. Depois: comentário com palavra-chave vira DM automática e lead na Central. Mandar a lista de @ para o radar.",
+    "prioridade": "normal",
+    "prazo": null,
+    "criado": "2026-11-06T01:26:03.772Z",
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "liberada": false,
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "criou na reorganização, com o Gabriel"
+      }
+    ]
+  },
+  {
+    "id": 63,
+    "titulo": "Demo de espelho de vendas 3D (imobiliária) para mostrar a clientes",
+    "projeto": "geral",
+    "coluna": "a fazer",
+    "detalhe": "Prédio gerado por código com unidades clicáveis por situação (disponível, reservado, vendido), painel lateral e versão celular.",
+    "prioridade": "normal",
+    "prazo": null,
+    "criado": "2026-11-06T01:26:03.772Z",
+    "por": "gabriel",
+    "responsavel": "gabriel",
+    "liberada": false,
+    "linha": [
+      {
+        "em": "2026-11-06T01:26:03.772Z",
+        "por": "vz",
+        "texto": "criou na reorganização, com o Gabriel"
+      }
+    ]
   }
 ]
