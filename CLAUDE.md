@@ -43,6 +43,54 @@ Painel interno da VZ Soluções em Tecnologia (Gabriel Vanzella, devs Derik e Ma
 - **Máquina de edição de vídeo:** Claude Code + FFmpeg + Whisper + HyperFrames (plugin da HeyGen, Apache 2.0) no projeto videoia. Os efeitos de troca de roupa e cenário vêm de um modelo de vídeo (pago por uso ou Wan VACE na GPU), não do Claude.
 - **Vendas ("virada de chave"):** a API oficial do Instagram (conta profissional + app da Meta) mostra quem comentou, mandou DM ou respondeu story, e permite DM automática por palavra-chave: vira lead na Central. Ela não mostra quem curtiu, salvou ou viu. A regra geral está no CLAUDE.md global (biblioteca).
 - **Espelho de vendas 3D** (imobiliária): demo a fazer com Three.js, prédio gerado por código e unidades clicáveis.
+- **Avisos estilo Instagram (05/11, "quero isso bem completo, vai me incentivar a usar todo dia"):**
+  - **Sino 🔔 no topo e bolinhas vermelhas com número** nas áreas da home (Todas as tarefas, Radar, Estudos, Histórico). Mostram o que mudou desde a última visita (`vistoEm` por pessoa em `dados/usuarios.json`; `avisosPara()` em `ia.mjs`; `GET /api/avisos`, `POST /api/avisos/visto`). Ao entrar numa área, ela conta como vista.
+  - **Prazos** vencendo ou atrasados e **lembretes** vencidos ficam até serem resolvidos.
+  - **Lembretes privados** por pessoa: "Sabrina, me lembra amanhã às 9h de…" (`criar_lembrete`, `ver_lembretes`, `concluir_lembrete`; guardados em `dados/pessoal`).
+  - **Notificação no canto da tela** para os avisos importantes (o botão "Avisar também no canto da tela" pede a permissão).
+  - **Número no ícone do app** (Badging API) e **app instalável** (PWA: `public/manifest.webmanifest`, `icone-192/512.png`). No Edge ou Chrome: menu ⋯ > Aplicativos > Instalar a Central da VZ.
+  - **Incentivo** no topo da tela Hoje: 🔥 dias seguidos usando (`registrarDiaDeUso`), ✅ resolvidas hoje e 🔴 quantos avisos faltam ver.
+  - A Sabrina conta os avisos (`ver_avisos`).
+- **Comandos do Claude na Central:** material "Cola dos comandos do Claude" nos Estudos (`conteudo/estudos/comandos-do-claude.md`) e "Comando do dia" na home (lista `COMANDOS_DIA` em `app.js`, troca todo dia).
+
+## WhatsApp da Central (PRÓXIMO A FAZER, mastigado em 05/11)
+
+**O que o Gabriel quer:**
+- falar com a Sabrina pelo WhatsApp, por texto e por **áudio**;
+- receber **notificações** ("você precisa resolver isto: 2 tarefas esperando aprovação, prazo vencendo, lembrete") e um resumo de manhã;
+- depois, passar tarefas por lá.
+
+**Números (decididos):**
+- O Gabriel escreve do **(11) 96498-1181** (`5511964981181`).
+- A Sabrina responde pelo **mesmo número que o ContabIA usa** (o celular que era do AprovIA e agora é da empresa), conectado como **mais um aparelho**. O WhatsApp aceita até 4 aparelhos conectados, então não precisa desconectar o ContabIA.
+- Conferido em 05/11: o ContabIA **não responde mais** ao número do Gabriel, então os dois bots não vão disputar a mesma conversa.
+
+**Como fazer (baseado na ponte que já funciona em `C:/xampp/htdocs/ContabIA/tools/whatsapp-ponte`):**
+1. `npm i baileys pino` no central-vz. O ContabIA usa `baileys ^7.0.0-rc14`; ver `ponte.mjs` linhas 115 a 210.
+2. Criar `whats.mjs` e iniciar **dentro do `servidor.mjs`** (um só processo escrevendo em `dados/`, sem disputa de arquivo) quando houver `WHATS_PAREAR_NUMERO` no `.env`.
+   - Sessão em `dados/whats-sessao/`: **pôr no `.gitignore`**, porque dá acesso total ao número.
+   - Conexão: `makeWASocket({ version: (await fetchLatestBaileysVersion()).version, auth: state, browser: Browsers.windows('Chrome'), logger: pino({ level: 'silent' }), markOnlineOnConnect: false })` + `useMultiFileAuthState`.
+   - Parear com **código por número**: `sock.requestPairingCode(numero)`. Mostrar o código na tela "WhatsApp" da Central (só o dono) e no console. No celular: WhatsApp > Aparelhos conectados > Conectar aparelho > Conectar com número de telefone.
+   - Reconectar ao cair, menos em `DisconnectReason.loggedOut`.
+3. **Quem pode falar:** `.env` `WHATS_PESSOAS=5511964981181:gabriel` (telefone:usuário, separados por vírgula; Derik e Mateus depois).
+   - Copiar `remetente`, `variantes` e `ehConversaIndividual` de `formato.mjs`. O Baileys 7 manda `@lid`; o telefone vem em `remoteJidAlt`, e o celular brasileiro aparece com ou sem o 9.
+   - Qualquer outro número, grupo ou status: **ignorar sem registrar nada**. Mensagens `fromMe`: ignorar.
+4. **Conversa:** texto → `conversar({ pessoa, canal: 'whats', mensagem, avisar })`.
+   - Juntar os eventos `{tipo:'texto'}` e responder com `sock.sendMessage(jid, { text })`.
+   - Em `instrucoes()`, quando `canal === 'whats'`: "Você está no WhatsApp: responda curto, em texto simples, sem markdown pesado".
+   - Ações que só existem na tela (`abrir_tela`) respondem com o link `http://localhost:8790/#/...`.
+5. **Áudio:** `downloadMediaMessage(m, 'buffer', {}, { logger, reuploadRequest: sock.updateMediaMessage })` → salvar em um `.ogg` temporário → transcrever com faster-whisper (copiar `~/.claude/skills/analisar-reel/analisar_video.py` como base, ou o `transcrever.py` com `WhisperModel('small', device='cpu', compute_type='int8')`, `language='pt'`) chamado por `execFile('python', ['-I', 'scripts/transcrever.py', arquivo])`. Mandar o texto para `conversar` e apagar o arquivo.
+6. **Notificações pelo WhatsApp:** a cada 5 minutos, para cada pessoa de `WHATS_PESSOAS`, `avisosPara(pessoa, vistoEm)` → enviar só os itens `importante` ainda não enviados (chaves em `dados/whats-enviados.json`, fora do git).
+   - Formato: "🔔 Você precisa resolver: …".
+   - **Resumo às 8h:** quantos esperam aprovação, prazos, lembretes de hoje e o destaque do radar.
+   - **Silêncio das 22h às 7h**, menos os lembretes marcados para esse horário.
+7. **Discrição:** pelo WhatsApp vai só trabalho e os lembretes que a própria pessoa criou. **Nunca** humor, notas pessoais ou conversas antigas. O celular pode estar à vista de outras pessoas.
+8. **Testes:**
+   - unidade para a lista de permissão e a montagem das mensagens, sem conectar ao WhatsApp;
+   - teste manual: mandar "Sabrina, o que tenho hoje?" do 96498-1181.
+9. **Onde rodar:** a ponte precisa de um PC **ligado** e da Central rodando. Parear no PC que fica ligado. A sessão vale só naquele PC e **não vai pelo git**; em outro PC é preciso parear de novo.
+
+**Riscos:** o Baileys é uma API não oficial, e o número pode ser bloqueado. Para teste está ok; em produção, migrar para a Cloud API oficial (o ContabIA já planeja isso).
 
 ## Sincronia entre os PCs
 
@@ -75,7 +123,7 @@ Painel interno da VZ Soluções em Tecnologia (Gabriel Vanzella, devs Derik e Ma
 5. **HyperFrames:** revisar o plugin e o Gabriel instala (`/plugin marketplace add heygen-com/hyperframes`, `/plugin install hyperframes@hyperframes`); gravar um vídeo cru de teste.
 6. **Pesquisa na internet na conversa da Sabrina** (o radar já pesquisa; a conversa ainda não): acrescentar em `conversar()` a ferramenta `{type:'web_search_20260209', name:'web_search', max_uses:3}`, regra no FIXO para citar a fonte e aviso na tela.
 7. **Avatar 3D com a boca mexendo:** depende do Gabriel criar a Sabrina no VRoid Studio e salvar em `public/vz/sabrina.vrm`.
-8. **WhatsApp no celular da empresa** (cartão 8): quando o Gabriel desconectar o número do ContabIA. Depois: conversar com a Sabrina e passar tarefas pelo WhatsApp.
+8. **WhatsApp da Central: é o PRÓXIMO**. Plano completo na seção "WhatsApp da Central" acima. Não precisa desconectar o ContabIA.
 9. **Central em produção (não feito):** hoje ela só roda no PC (127.0.0.1). Antes de pôr na internet, decidir: onde roda (VPS ou este PC com Tailscale), HTTPS, porta de entrada protegida (Cloudflare Access ou Tailscale), backup de `dados/` e a chave do Claude só no servidor. Nunca no `public_html` do site.
 10. Conferir a tela Hoje e a doca no celular (390px).
 
