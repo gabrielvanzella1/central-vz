@@ -319,7 +319,7 @@ const ROTULOS = {
   listar_tarefas: 'olhou o quadro', criar_tarefa: 'criou um cartão', editar_tarefa: 'atualizou um cartão', apagar_tarefa: 'apagou um cartão',
   salvar_memoria: 'guardou na memória', esquecer_memoria: 'esqueceu uma memória', consultar_historico: 'consultou o histórico',
   mudar_aparencia: 'mudou de aparência', registrar_pratica: 'anotou a sua prática', ver_pratica: 'olhou a sua prática', salvar_nota_pessoal: 'guardou uma nota pessoal (só você vê)', ver_notas_pessoais: 'olhou as suas notas pessoais', esquecer_nota_pessoal: 'esqueceu uma nota pessoal',
-  listar_estudos: 'olhou os estudos', criar_estudo: 'criou um material de estudo', sugerir_melhoria_central: 'anotou uma melhoria para a central', abrir_tela: 'abriu uma tela',
+  listar_estudos: 'olhou os estudos', criar_estudo: 'criou um material de estudo', sugerir_melhoria_central: 'anotou uma melhoria para a central', abrir_tela: 'abriu uma tela', ver_radar: 'olhou o radar de novidades',
 };
 
 // ---- Chamar pelo nome: diga "VZ" e ela atende ----
@@ -593,6 +593,7 @@ async function home() {
       </div>
     </section>
     <section class="areas">
+      <a class="area a-radar" href="#/radar"><span class="radar-ico" aria-hidden="true">📡</span><div><h2>Radar de novidades</h2><p class="radar-resumo">O que saiu de novo em IA, todo dia às 7h.</p></div><span class="tag radar-tag">abrir</span></a>
       <div class="area a-conversa" data-tour="conversa">
         <h2>Conversar com <span data-nome-ia>${esc(estado.nomeIA)}</span></h2>
         <p>Fale de verdade: ela responde em voz, cria tarefas, consulta projetos e guarda o que importa.</p>
@@ -623,6 +624,12 @@ async function home() {
       </a>
     </section>`;
   ligarTrocaAvatar();
+  api('/api/radar').then((d) => {
+    const r = d.radar;
+    if (!r) return;
+    tela.querySelector('.radar-resumo').textContent = r.resumo || `${r.itens.length} novidades`;
+    tela.querySelector('.radar-tag').textContent = `${r.itens.length} novidades · ${new Date(`${r.data}T12:00`).toLocaleDateString('pt-BR')}`;
+  }).catch(() => {});
   tela.querySelector('.a-conversa .orbe').addEventListener('click', () => { soltarConversa(false); abrirDoca(); chatGeral?.alternarVoz(); });
   if (!jaViu('tour')) iniciarTour();
 }
@@ -928,6 +935,54 @@ function iniciarTour() {
   boasVindas();
 }
 
+// ---------------- radar de novidades ----------------
+const CAT_RADAR = { claude: ['✳️', 'Claude'], mcp: ['🧩', 'MCPs'], skill: ['⚡', 'Skills'], modelo: ['🧠', 'Modelos abertos'], ferramenta: ['🛠️', 'Ferramentas'], perfil: ['👤', 'Perfis'] };
+async function radarTela(dataPedida) {
+  const d = await api(`/api/radar${dataPedida ? `?data=${encodeURIComponent(dataPedida)}` : ''}`);
+  const r = d.radar;
+  const dataBR = (s) => new Date(`${s}T12:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
+  const cartao = (i) => `
+    <article class="radar-item" data-cat="${esc(i.categoria)}">
+      <header><span class="radar-cat">${CAT_RADAR[i.categoria]?.[0] || '•'} ${esc(CAT_RADAR[i.categoria]?.[1] || i.categoria)}</span><span class="esforco e-${esc(i.esforco)}">esforço ${esc(i.esforco === 'medio' ? 'médio' : i.esforco)}</span></header>
+      <h3>${esc(i.titulo)}</h3>
+      <p>${esc(i.oque)}</p>
+      ${i.visual ? `<p class="radar-visual"><b>Como fica:</b> ${esc(i.visual)}</p>` : ''}
+      ${i.para_vz ? `<p class="radar-vz"><b>Para a VZ:</b> ${esc(i.para_vz)}</p>` : ''}
+      <footer>${i.licenca ? `<span class="tag">${esc(i.licenca)}</span>` : ''}${i.data ? `<span class="tag">${esc(i.data)}</span>` : ''}${i.link ? `<a href="${esc(i.link)}" target="_blank" rel="noopener noreferrer">abrir fonte ↗</a>` : ''}</footer>
+    </article>`;
+  const cats = r ? Object.keys(CAT_RADAR).filter((c) => r.itens.some((i) => i.categoria === c)) : [];
+  tela.innerHTML = `
+    <section class="radar-topo">
+      <div><h1>📡 Radar de novidades</h1><p>${r ? esc(r.resumo) : 'O radar pesquisa todo dia, a partir das 7h, o que saiu de novo em IA para a VZ.'}</p></div>
+      <div class="radar-acoes">
+        ${d.datas.length ? `<select class="radar-data" aria-label="Escolher o dia">${d.datas.map((x) => `<option value="${x}" ${r && x === r.data ? 'selected' : ''}>${dataBR(x)}</option>`).join('')}</select>` : ''}
+        ${eu.papel === 'dono' ? `<button type="button" class="btn radar-gerar" ${d.gerando ? 'disabled' : ''}>${d.gerando ? 'Pesquisando…' : 'Atualizar agora'}</button>` : ''}
+      </div>
+    </section>
+    ${r ? `
+    <section class="radar-top3">${r.top3.map((t, k) => `<div class="top"><span class="num">${k + 1}</span><div><h3>${esc(t.titulo)}</h3><p><b>Primeiro passo:</b> ${esc(t.primeiro_passo)}</p></div></div>`).join('')}</section>
+    <nav class="radar-filtros" aria-label="Filtrar por categoria"><button type="button" class="ativo" data-f="">Tudo (${r.itens.length})</button>${cats.map((c) => `<button type="button" data-f="${c}">${CAT_RADAR[c][0]} ${CAT_RADAR[c][1]} (${r.itens.filter((i) => i.categoria === c).length})</button>`).join('')}</nav>
+    <section class="radar-grade">${r.itens.map(cartao).join('')}</section>
+    <p class="radar-rodape">Gerado em ${new Date(r.gerado_em).toLocaleString('pt-BR')} · ${d.perfis.length ? `Perfis acompanhados: ${d.perfis.map(esc).join(', ')}` : 'Nenhum perfil acompanhado ainda (mande a lista de @ para a VZ).'}</p>`
+    : `<div class="vazio-grande">${d.gerando ? '🔎 Pesquisando as novidades… leva uns 2 a 4 minutos.' : 'Ainda não há radar. Toque em “Atualizar agora” ou espere as 7h.'}</div>`}`;
+  tela.querySelector('.radar-data')?.addEventListener('change', (e) => { location.hash = `#/radar/${e.target.value}`; });
+  tela.querySelectorAll('.radar-filtros button').forEach((b) => b.addEventListener('click', () => {
+    tela.querySelectorAll('.radar-filtros button').forEach((x) => x.classList.toggle('ativo', x === b));
+    tela.querySelectorAll('.radar-item').forEach((it) => { it.hidden = Boolean(b.dataset.f) && it.dataset.cat !== b.dataset.f; });
+  }));
+  const espera = async () => {
+    const x = await api('/api/radar');
+    if (!location.hash.startsWith('#/radar')) return;
+    if (x.gerando) setTimeout(espera, 10_000); else radarTela();
+  };
+  tela.querySelector('.radar-gerar')?.addEventListener('click', async () => {
+    const res = await postar('/api/radar/gerar');
+    if (!res.ok) { alert(res.dados.erro || 'Não foi possível atualizar.'); return; }
+    radarTela(); setTimeout(espera, 10_000);
+  });
+  if (d.gerando) setTimeout(espera, 10_000);
+}
+
 // ---------------- roteamento ----------------
 async function rotear() {
   if (!eu) return;
@@ -940,7 +995,7 @@ async function rotear() {
   const [area, sub] = location.hash.replace(/^#\/?/, '').split('/');
   if (area !== 'conversa') soltarConversa(false); // a conversa vai para a doca e continua
   document.querySelector('.voltar').hidden = !area;
-  const telas = { '': home, conversa, quadro, projetos, estudos: () => estudos(sub), memoria, historico: historicoTela };
+  const telas = { '': home, conversa, quadro, projetos, estudos: () => estudos(sub), memoria, historico: historicoTela, radar: () => radarTela(sub) };
   await (telas[area] || home)();
   tela.focus({ preventScroll: true });
   scrollTo(0, 0);

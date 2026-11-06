@@ -14,6 +14,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import { definirVersao } from './auth.mjs';
+import { listarRadar, lerRadar } from './radar.mjs';
 import path from 'node:path';
 
 const MODELO = 'claude-opus-5-5';
@@ -136,7 +137,7 @@ const PRIORIDADES = ['alta', 'normal', 'baixa'];
 const dataValida = (d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d);
 const hojeISO = () => new Date().toLocaleDateString('sv-SE'); // AAAA-MM-DD no fuso local
 const linhaTarefa = (t) => `#${t.id} [${t.coluna}] (${t.projeto})${t.prioridade === 'alta' ? ' PRIORIDADE ALTA' : t.prioridade === 'baixa' ? ' (baixa)' : ''}${t.prazo ? ` prazo ${t.prazo}` : ''} ${t.titulo}${t.detalhe ? ` — ${t.detalhe}` : ''}`;
-const TELAS = ['inicio', 'conversa', 'quadro', 'projetos', 'estudos', 'memoria', 'historico'];
+const TELAS = ['inicio', 'conversa', 'quadro', 'projetos', 'estudos', 'memoria', 'historico', 'radar'];
 const texto = (v) => typeof v === 'string' && v.trim() !== '';
 const exigir = (cond, msg) => { if (!cond) throw new Error(msg); };
 const obj = (properties, required = []) => ({ type: 'object', properties, required, additionalProperties: false });
@@ -391,6 +392,18 @@ const ACOES = {
   },
 
   // ----- navegação -----
+  ver_radar: {
+    descricao: 'Conta as novidades de IA do radar diário da VZ (Claude, MCPs, skills, modelos abertos, ferramentas). Use quando perguntarem o que há de novo, as novidades do dia ou tendências.',
+    parametros: obj({ categoria: { type: 'string', enum: ['claude', 'mcp', 'skill', 'modelo', 'ferramenta', 'perfil'] } }),
+    fazer: (e) => {
+      const data = listarRadar()[0];
+      const r = data && lerRadar(data);
+      if (!r) return 'Ainda não há radar. Ele é gerado todo dia a partir das 7h, ou pelo botão "Atualizar agora" na tela Radar.';
+      const itens = r.itens.filter((i) => !e.categoria || i.categoria === e.categoria).slice(0, 8);
+      const top = r.top3.map((t, k) => `${k + 1}. ${t.titulo} (primeiro passo: ${t.primeiro_passo})`).join(' ');
+      return `Radar de ${data}. ${r.resumo} Para testar: ${top} Itens: ${itens.map((i) => `[${i.categoria}] ${i.titulo}: ${i.oque} Para a VZ: ${i.para_vz}`).join(' | ')}`;
+    },
+  },
   abrir_tela: {
     descricao: `Abre uma tela do painel para a pessoa: ${TELAS.join(', ')}. Para um material de estudo, informe também o estudo (slug). Use quando pedirem para ver ou abrir algo.`,
     parametros: obj({ tela: { type: 'string', enum: TELAS }, estudo: { type: 'string' } }, ['tela']),

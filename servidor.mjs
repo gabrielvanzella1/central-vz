@@ -4,6 +4,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import dns from 'node:dns/promises';
+import { listarRadar, lerRadar, gerarRadar, agendarRadar, radarRodando, perfis } from './radar.mjs';
 import Anthropic from '@anthropic-ai/sdk';
 import { conversar, historico, novaConversa, todosProjetos, executarAcao, listaEstudos, tarefas, memorias, dicas, dicaProjeto, acatarDica, registrar, atividades } from './ia.mjs';
 import { entrar, quemE, sair, trocarSenha, marcarVisto, definirVersao, encerrarSessoes, configurarEmergencia, removerEmergencia, statusEmergencia, recuperar, cookieSessao, cookieApagar } from './auth.mjs';
@@ -176,6 +177,17 @@ async function api(req, res, url) {
   }
   if (req.method === 'GET' && rota === '/api/memoria') return json(res, memorias());
   if (req.method === 'GET' && rota === '/api/estudos') return json(res, listaEstudos());
+  if (req.method === 'GET' && rota === '/api/radar') {
+    const datas = listarRadar();
+    const data = url.searchParams.get('data') || datas[0];
+    return json(res, { datas, radar: data ? lerRadar(data) : null, gerando: radarRodando(), perfis: perfis() });
+  }
+  if (req.method === 'POST' && rota === '/api/radar/gerar') {
+    if (eu.papel !== 'dono') return json(res, { erro: 'Só o dono atualiza o radar.' }, 403);
+    if (!process.env.ANTHROPIC_API_KEY) return json(res, { erro: 'Falta a chave do Claude.' }, 400);
+    gerarRadar().then(() => registrar(eu, 'radar', 'Atualizou o radar de novidades')).catch((e) => console.error('Radar falhou:', e.message));
+    return json(res, { ok: true, gerando: true }, 202);
+  }
   if (req.method === 'GET' && rota.startsWith('/api/estudos/')) {
     const slug = rota.split('/').pop();
     const arq = path.join(ESTUDOS, `${slug}.md`);
@@ -253,5 +265,6 @@ http.createServer(async (req, res) => {
   }
 }).listen(PORTA, '127.0.0.1', () => {
   console.log(`Central da VZ em http://localhost:${PORTA}`);
+  if (process.env.RADAR !== 'desligado') agendarRadar();
   if (!process.env.ANTHROPIC_API_KEY) console.log('Sem ANTHROPIC_API_KEY: o painel abre, mas a IA só responde depois de criar o .env.');
 });
