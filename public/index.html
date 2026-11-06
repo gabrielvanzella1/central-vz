@@ -10,12 +10,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#0B40CE" />
 </head>
 <body>
   <header class="topo">
     <a href="#/" class="marca" aria-label="Central da VZ, início"><img src="logo-vz-claro.webp" alt="" width="902" height="421" /><span>Central</span></a>
     <a href="#/" class="voltar" hidden>← Início</a>
     <div class="topo-dir">
+      <button type="button" class="sino" hidden aria-label="Avisos"><span aria-hidden="true">🔔</span><span class="bolha" hidden></span></button>
       <button type="button" class="chip-usuario" id="usuario" title="Trocar de usuário"></button>
       <button type="button" class="menu-btn" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu"><span></span></button>
     </div>

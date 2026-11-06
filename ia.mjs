@@ -71,7 +71,7 @@ export const tarefas = () => ler('tarefas.json', []);
 export const memorias = () => ler('memoria.json', []);
 // Notas pessoais: o que a VZ sabe sobre UMA pessoa (como anda, o que pesa, o que ajuda, datas). Privadas: dados/pessoal/<pessoa>.json, fora do git.
 const arqPessoal = (u) => `pessoal/${nomeSeguro(u)}.json`;
-const pessoal = (u) => ler(arqPessoal(u), { notas: [], checkin: null, pratica: [] });
+const pessoal = (u) => ler(arqPessoal(u), { notas: [], checkin: null, pratica: [], lembretes: [] });
 export const dicas = () => ler('dicas.json', {});
 
 export function listaEstudos() {
@@ -515,6 +515,50 @@ const ACOES = {
       return `Radar de ${data}. ${r.resumo} Para testar: ${top} Itens: ${itens.map((i) => `[${i.categoria}] ${i.titulo}: ${i.oque} Para a VZ: ${i.para_vz}`).join(' | ')}`;
     },
   },
+  criar_lembrete: {
+    descricao: 'Cria um lembrete PRIVADO para a pessoa que está falando, para um dia e hora (ex.: "me lembra amanhã às 9h de ligar para a NOAR"). Converta "amanhã", "sexta", "daqui a 2 horas" para AAAA-MM-DDTHH:MM no horário de Brasília. Sem hora dita, use 09:00.',
+    parametros: obj({ texto: { type: 'string' }, quando: { type: 'string', description: 'AAAA-MM-DDTHH:MM (horário de Brasília)' } }, ['texto', 'quando']),
+    fazer: (e, pessoa) => {
+      exigir(texto(e.texto), 'diga do que lembrar');
+      exigir(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(e.quando || ''), 'quando deve ser AAAA-MM-DDTHH:MM');
+      const p = pessoal(pessoa.usuario);
+      const id = (p.lembretes || []).reduce((m, l) => Math.max(m, l.id), 0) + 1;
+      p.lembretes = [...(p.lembretes || []), { id, texto: e.texto.trim().slice(0, 200), quando: e.quando, feito: false, criado: new Date().toISOString() }].slice(-200);
+      gravar(arqPessoal(pessoa.usuario), p);
+      const [d, h] = e.quando.split('T');
+      return `Lembrete #${id} para ${d.split('-').reverse().join('/')} às ${h}: ${e.texto.trim()}.`;
+    },
+  },
+  ver_lembretes: {
+    descricao: 'Lista os lembretes da pessoa que está falando (pendentes primeiro).',
+    parametros: obj({}),
+    fazer: (e, pessoa) => {
+      const ls = (pessoal(pessoa.usuario).lembretes || []).filter((l) => !l.feito).sort((a, b) => (a.quando < b.quando ? -1 : 1));
+      return ls.map((l) => `#${l.id} ${l.quando.replace('T', ' ')} — ${l.texto}`).join('\n') || 'Nenhum lembrete pendente.';
+    },
+  },
+  concluir_lembrete: {
+    descricao: 'Marca um lembrete como resolvido (some dos avisos).',
+    parametros: obj({ id: { type: 'integer' } }, ['id']),
+    fazer: (e, pessoa) => {
+      const p = pessoal(pessoa.usuario);
+      const l = (p.lembretes || []).find((x) => x.id === Number(e.id));
+      exigir(l, `o lembrete #${e.id} não existe`);
+      l.feito = true;
+      gravar(arqPessoal(pessoa.usuario), p);
+      return `Lembrete #${l.id} resolvido.`;
+    },
+  },
+  ver_avisos: {
+    descricao: 'Conta o que aconteceu desde a última vez que a pessoa olhou: tarefas que mudaram (passadas, terminadas, esperando aprovação), radar novo, materiais novos e o que a equipe fez. Use quando perguntarem "o que eu perdi", "tem novidade?", "o que aconteceu?", e de leve na primeira conversa do dia.',
+    parametros: obj({}),
+    fazer: (e, pessoa) => {
+      const usuario = lerUsuarios().find((u) => u.usuario === pessoa.usuario);
+      const a = avisosPara(pessoa, usuario?.vistoEm || {});
+      if (!a.total) return 'Nada novo desde a última vez.';
+      return `${a.total} avisos. ${a.itens.slice(0, 12).map((i) => `${i.importante ? '[IMPORTANTE] ' : ''}${i.texto}`).join(' | ')}`;
+    },
+  },
   abrir_tela: {
     descricao: `Abre uma tela do painel para a pessoa: ${TELAS.join(', ')}. Para um material de estudo, informe também o estudo (slug). Use quando pedirem para ver ou abrir algo.`,
     parametros: obj({ tela: { type: 'string', enum: TELAS }, estudo: { type: 'string' } }, ['tela']),
@@ -522,6 +566,48 @@ const ACOES = {
     navegar: (e) => (e.tela === 'inicio' ? '#/' : e.tela === 'estudos' && e.estudo ? `#/estudos/${e.estudo}` : `#/${e.tela}`),
   },
 };
+
+// ---------- avisos (as bolinhas, estilo Instagram) ----------
+// O que aconteceu desde a última vez que a pessoa viu cada área. Na primeira vez, olha os últimos 3 dias.
+const TIPOS_SILENCIOSOS = ['login', 'logout', 'login_falhou', 'mensagem', 'resposta', 'versao_vz', 'senha_trocada'];
+export function avisosPara(pessoa, vistoEm = {}) {
+  const padrao = new Date(Date.now() - 3 * 86_400_000).toISOString();
+  const desde = (a) => vistoEm[a] || padrao;
+  const itens = [];
+  const dono = pessoa.papel === 'dono';
+  for (const t of tarefas()) {
+    const ult = t.linha?.at(-1);
+    if (!ult || ult.em <= desde('tarefas') || ult.por === pessoa.usuario) continue;
+    const minha = t.responsavel === pessoa.usuario;
+    const relevante = dono || minha || (t.liberada && !t.responsavel);
+    if (relevante) itens.push({ area: 'tarefas', id: t.id, em: ult.em, texto: `${nomeDe(ult.por)} ${ult.texto} — ${t.titulo}`, importante: (dono && t.coluna === 'aprovar') || minha });
+  }
+  const hoje = hojeISO();
+  for (const t of tarefas()) {
+    if (!t.prazo || t.prazo > hoje || ['feito', 'aprovar'].includes(t.coluna)) continue;
+    if (!(t.responsavel === pessoa.usuario || (dono && !t.responsavel))) continue;
+    itens.push({ area: 'prazos', id: t.id, em: `${t.prazo}T00:00:00.000Z`, importante: true, fixo: true, texto: `${t.prazo < hoje ? 'Atrasada' : 'Vence hoje'}: ${t.titulo}` });
+  }
+  const agoraLocal = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+  for (const l of pessoal(pessoa.usuario).lembretes || []) {
+    if (l.feito || l.quando > agoraLocal) continue;
+    itens.push({ area: 'lembretes', id: l.id, em: `${l.quando}:00.000Z`, importante: true, fixo: true, texto: `Lembrete: ${l.texto}` });
+  }
+  const dataRadar = listarRadar()[0];
+  const radar = dataRadar && lerRadar(dataRadar);
+  if (radar && radar.gerado_em > desde('radar')) itens.push({ area: 'radar', em: radar.gerado_em, texto: `Radar novo: ${radar.itens.length} novidades${radar.top3[0] ? ` (destaque: ${radar.top3[0].titulo})` : ''}` });
+  for (const e of listaEstudos()) {
+    const em = fs.statSync(path.join(ESTUDOS, `${e.slug}.md`)).mtime.toISOString();
+    if (em > desde('estudos')) itens.push({ area: 'estudos', slug: e.slug, em, texto: `Material novo ou atualizado: ${e.titulo}` });
+  }
+  const daEquipe = atividades({ desde: desde('equipe'), limite: 500 }).filter((e) => e.usuario !== pessoa.usuario && !TIPOS_SILENCIOSOS.includes(e.tipo));
+  if (daEquipe.length) itens.push({ area: 'equipe', em: daEquipe[0].data, texto: `${daEquipe.length} ${daEquipe.length === 1 ? 'coisa feita' : 'coisas feitas'} pela equipe (última: ${nomeDe(daEquipe[0].usuario)} — ${daEquipe[0].descricao.slice(0, 80)})` });
+  itens.sort((a, b) => (a.em < b.em ? 1 : -1));
+  const contagem = Object.fromEntries(['tarefas', 'prazos', 'lembretes', 'radar', 'estudos', 'equipe'].map((a) => [a, itens.filter((i) => i.area === a).length]));
+  itens.sort((a, b) => Number(Boolean(b.importante)) - Number(Boolean(a.importante))); // importante primeiro
+  const resolvidasHoje = tarefas().filter((t) => (t.linha || []).some((l) => l.por === pessoa.usuario && l.em.slice(0, 10) === new Date().toISOString().slice(0, 10) && /^(terminou|aprovou)/.test(l.texto))).length;
+  return { itens: itens.slice(0, 50), contagem, total: itens.length, resolvidasHoje };
+}
 
 // Executa uma ação, com a mesma checagem para a tela e para a IA
 export async function executarAcao(nome, entrada, pessoa) {
@@ -551,6 +637,7 @@ Como agir:
 - "Prioridade de hoje" = cartões com prioridade alta ou prazo até hoje, fora de "feito" (listar_tarefas com so_prioridades).
 - Tarefas têm dono: cada uma está com alguém (Gabriel, Derik, Mateus, o agente da noite) ou com ninguém. Fale assim, sem jargão de Kanban: "está com o Derik", "esperando você aprovar", "liberada para a equipe".
 - O Gabriel passa e libera tarefas (passar_tarefa). Os devs pegam só as liberadas (pegar_tarefa). Quem termina usa concluir_tarefa: se for da equipe, vai para o Gabriel aprovar (aprovar_tarefa ou devolver_tarefa com o motivo).
+- "O que eu perdi?", "tem novidade?": use ver_avisos (tarefas que mudaram, radar, materiais novos e o que a equipe fez). Fale primeiro do que é importante (esperando aprovação, tarefas com a pessoa).
 - "Passa pro agente" = passar_tarefa com para "agente": o agente da noite pega e abre um Pull Request.
 
 Presença e humor (importante):

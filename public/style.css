@@ -342,3 +342,30 @@ dialog.janela select, .form-tarefa input, .form-tarefa select, .form-tarefa text
 .dica-comando code { padding: .05rem .35rem; border-radius: 6px; background: var(--fundo); color: var(--azul); }
 .dica-comando .dc-mais { margin-left: auto; font-weight: 600; color: var(--azul); white-space: nowrap; }
 @media (max-width: 760px) { .dica-comando .dc-mais { display: none; } }
+
+/* Avisos: sino e bolinhas */
+.sino { position: relative; width: 2.6rem; height: 2.6rem; border: 1.5px solid var(--borda); border-radius: 50%; background: #fff; font-size: 1.1rem; cursor: pointer; }
+.sino[hidden] { display: none; }
+.sino .bolha, .bolinha { display: grid; place-items: center; min-width: 1.25rem; height: 1.25rem; padding: 0 .3rem; border-radius: 999px; background: #EF4444; color: #fff; font: 700 .7rem Inter, sans-serif; box-shadow: 0 0 0 2px #fff; }
+.sino .bolha { position: absolute; top: -4px; right: -4px; }
+.sino .bolha[hidden] { display: none; }
+.area { position: relative; }
+.bolinha { position: absolute; top: .7rem; right: .7rem; animation: pulsar-bolinha 2s ease-in-out infinite; }
+@keyframes pulsar-bolinha { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { .bolinha { animation: none; } }
+.lista-avisos { list-style: none; margin: .8rem 0; padding: 0; display: grid; gap: .4rem; }
+.lista-avisos a { display: flex; gap: .7rem; padding: .7rem .8rem; border-radius: 12px; background: var(--fundo); color: var(--tinta); text-decoration: none; }
+.lista-avisos a:hover { background: #E1E9FC; }
+.lista-avisos .importante a { background: #FEF3C7; }
+.lista-avisos .ico { font-size: 1.2rem; }
+.lista-avisos small { display: block; color: var(--tinta-2); font-size: .78rem; margin-top: .15rem; }
+
+.lista-avisos li { display: flex; gap: .4rem; align-items: center; }
+.lista-avisos li a { flex: 1; }
+.lista-avisos .resolver { flex: none; padding: .45rem .8rem; }
+.hoje-topo { position: relative; }
+.ativar-notif { margin: .2rem 0 .6rem; }
+
+.incentivo { display: flex; flex-wrap: wrap; gap: .5rem; margin-right: auto; margin-left: 1rem; }
+.incentivo span { padding: .3rem .7rem; border-radius: 999px; background: #fff; border: 1.5px solid var(--borda); font-size: .85rem; font-weight: 600; }
+.incentivo .pendente { border-color: #FCA5A5; background: #FEF2F2; }

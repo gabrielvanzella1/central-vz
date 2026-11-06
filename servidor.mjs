@@ -6,12 +6,12 @@ import path from 'node:path';
 import dns from 'node:dns/promises';
 import { listarRadar, lerRadar, gerarRadar, agendarRadar, radarRodando, perfis } from './radar.mjs';
 import Anthropic from '@anthropic-ai/sdk';
-import { conversar, historico, novaConversa, todosProjetos, executarAcao, listaEstudos, tarefas, memorias, dicas, dicaProjeto, acatarDica, registrar, atividades } from './ia.mjs';
-import { lerUsuarios, entrar, quemE, sair, trocarSenha, marcarVisto, definirVersao, encerrarSessoes, configurarEmergencia, removerEmergencia, statusEmergencia, recuperar, cookieSessao, cookieApagar } from './auth.mjs';
+import { avisosPara, conversar, historico, novaConversa, todosProjetos, executarAcao, listaEstudos, tarefas, memorias, dicas, dicaProjeto, acatarDica, registrar, atividades } from './ia.mjs';
+import { lerUsuarios, marcarVistoEm, registrarDiaDeUso, entrar, quemE, sair, trocarSenha, marcarVisto, definirVersao, encerrarSessoes, configurarEmergencia, removerEmergencia, statusEmergencia, recuperar, cookieSessao, cookieApagar } from './auth.mjs';
 
 const PORTA = Number(process.env.PORTA || 8790);
 const ESTUDOS = path.join('conteudo', 'estudos');
-const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.png': 'image/png', '.md': 'text/markdown; charset=utf-8' };
+const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.png': 'image/png', '.md': 'text/markdown; charset=utf-8', '.webmanifest': 'application/manifest+json' };
 const ocupado = new Set(); // um pedido por vez em cada conversa
 const vozPremium = () => Boolean(process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_VOZ);
 // Rosto da VZ: a primeira imagem public/vz/avatar.(webp|png|jpg) que existir
@@ -60,6 +60,7 @@ function respostaDeCoacao(req, res, rota, eu) {
     if (rota === '/api/eu') return json(res, { usuario: eu.usuario, nome: eu.nome, papel: eu.papel, trocarSenha: false, vistos: eu.vistos, versao: eu.versao });
     if (rota === '/api/dicas') return json(res, {});
     if (rota.startsWith('/api/estudos/')) return json(res, { erro: 'não encontrado' }, 404);
+    if (rota === '/api/avisos') return json(res, { itens: [], contagem: {}, total: 0 });
     if (['/api/tarefas', '/api/pessoas', '/api/projetos', '/api/memoria', '/api/historico', '/api/estudos', '/api/conversa'].includes(rota)) return json(res, []);
     return json(res, { erro: 'Indisponível no momento.' }, 503);
   }
@@ -141,6 +142,13 @@ async function api(req, res, url) {
     try { return json(res, { mensagem: await executarAcao(nome, entrada || {}, eu) }); } catch (erro) { return json(res, { erro: erro.message }, 400); }
   }
   if (req.method === 'GET' && rota === '/api/tarefas') return json(res, tarefas());
+  if (req.method === 'GET' && rota === '/api/avisos') return json(res, { ...avisosPara(eu, eu.vistoEm), sequencia: registrarDiaDeUso(eu.usuario) });
+  if (req.method === 'POST' && rota === '/api/avisos/visto') {
+    const { area } = await corpo(req);
+    if (!['tarefas', 'radar', 'estudos', 'equipe', 'tudo'].includes(area)) return json(res, { erro: 'área inválida' }, 400);
+    marcarVistoEm(eu.usuario, area);
+    return json(res, { ok: true });
+  }
   if (req.method === 'GET' && rota === '/api/pessoas') return json(res, lerUsuarios().map((u) => ({ usuario: u.usuario, nome: u.nome, papel: u.papel })));
   if (req.method === 'GET' && rota === '/api/dicas') return json(res, dicas());
   // Voz premium: o texto vai para a ElevenLabs e o áudio (mp3) volta para o navegador tocar.

@@ -81,7 +81,7 @@ export function quemE(req) {
   const s = token && sessoes.get(token);
   if (!s || s.expira < Date.now()) return null;
   const u = lerUsuarios().find((x) => x.usuario === s.usuario);
-  return u ? { usuario: u.usuario, nome: u.nome, papel: u.papel, trocarSenha: u.trocarSenha, vistos: u.vistos || [], versao: u.versao || 'normal', modo: s.modo, token } : null;
+  return u ? { usuario: u.usuario, nome: u.nome, papel: u.papel, trocarSenha: u.trocarSenha, vistos: u.vistos || [], versao: u.versao || 'normal', vistoEm: u.vistoEm || {}, modo: s.modo, token } : null;
 }
 // Ajudas que a pessoa já viu (tour, explicações das telas): aparecem só no primeiro acesso, em qualquer máquina
 export function marcarVisto(usuario, chave) {
@@ -90,6 +90,31 @@ export function marcarVisto(usuario, chave) {
   if (!u || (u.vistos || []).includes(chave)) return;
   u.vistos = [...(u.vistos || []), chave];
   gravarUsuarios(lista);
+}
+// Avisos (bolinhas): quando a pessoa viu cada área pela última vez
+export const AREAS_AVISO = ['tarefas', 'radar', 'estudos', 'equipe'];
+export function marcarVistoEm(usuario, area) {
+  const lista = lerUsuarios();
+  const u = lista.find((x) => x.usuario === usuario);
+  if (!u) return false;
+  const agora = new Date().toISOString();
+  u.vistoEm = { ...(u.vistoEm || {}) };
+  for (const a of area === 'tudo' ? AREAS_AVISO : [area]) if (AREAS_AVISO.includes(a)) u.vistoEm[a] = agora;
+  gravarUsuarios(lista);
+  return true;
+}
+// Sequência de dias usando a Central (incentivo, estilo Duolingo): grava o dia de hoje e devolve quantos dias seguidos
+export function registrarDiaDeUso(usuario) {
+  const lista = lerUsuarios();
+  const u = lista.find((x) => x.usuario === usuario);
+  if (!u) return 0;
+  const dia = (d) => d.toLocaleDateString('sv-SE');
+  const hoje = dia(new Date());
+  if (!(u.diasDeUso || []).includes(hoje)) { u.diasDeUso = [...(u.diasDeUso || []), hoje].slice(-120); gravarUsuarios(lista); }
+  const dias = new Set(u.diasDeUso);
+  let n = 0;
+  for (const d = new Date(); dias.has(dia(d)); d.setDate(d.getDate() - 1)) n++;
+  return n;
 }
 // Versão da VZ que a pessoa escolheu: "normal" (padrão) ou "personalizada" (personagem, voz e personalidade próprias)
 export const VERSOES = ['normal', 'personalizada'];

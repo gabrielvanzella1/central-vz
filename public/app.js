@@ -319,7 +319,7 @@ const ROTULOS = {
   listar_tarefas: 'olhou as tarefas', passar_tarefa: 'passou uma tarefa', pegar_tarefa: 'pegou uma tarefa', concluir_tarefa: 'concluiu uma tarefa', aprovar_tarefa: 'aprovou uma tarefa', devolver_tarefa: 'devolveu uma tarefa', criar_tarefa: 'criou um cartão', editar_tarefa: 'atualizou um cartão', apagar_tarefa: 'apagou um cartão',
   salvar_memoria: 'guardou na memória', esquecer_memoria: 'esqueceu uma memória', consultar_historico: 'consultou o histórico',
   mudar_aparencia: 'mudou de aparência', registrar_pratica: 'anotou a sua prática', ver_pratica: 'olhou a sua prática', salvar_nota_pessoal: 'guardou uma nota pessoal (só você vê)', ver_notas_pessoais: 'olhou as suas notas pessoais', esquecer_nota_pessoal: 'esqueceu uma nota pessoal',
-  listar_estudos: 'olhou os estudos', criar_estudo: 'criou um material de estudo', sugerir_melhoria_central: 'anotou uma melhoria para a central', abrir_tela: 'abriu uma tela', ver_radar: 'olhou o radar de novidades',
+  listar_estudos: 'olhou os estudos', criar_estudo: 'criou um material de estudo', criar_lembrete: 'criou um lembrete', ver_lembretes: 'olhou os lembretes', concluir_lembrete: 'resolveu um lembrete', ver_avisos: 'olhou os avisos', sugerir_melhoria_central: 'anotou uma melhoria para a central', abrir_tela: 'abriu uma tela', ver_radar: 'olhou o radar de novidades',
 };
 
 // ---- Chamar pelo nome: diga "VZ" e ela atende ----
@@ -787,7 +787,7 @@ async function desenharHoje(alvo, tarefas) {
       + bloco('🎁 Liberadas para pegar', abertas.filter((t) => t.liberada && !t.responsavel), 'Nenhuma liberada agora.')
       + bloco('⏳ Esperando o Gabriel aprovar', abertas.filter((t) => t.coluna === 'aprovar' && (t.feitaPor === eu.usuario || t.responsavel === eu.usuario)), 'Nada esperando aprovação.');
   }
-  alvo.innerHTML = `<div class="hoje-topo"><h2>Hoje</h2><button type="button" class="btn nova-tarefa">+ Nova tarefa</button></div><div class="blocos-hoje">${blocos}</div>`;
+  alvo.innerHTML = `<div class="hoje-topo"><h2>Hoje</h2><span class="incentivo"></span><button type="button" class="btn nova-tarefa">+ Nova tarefa</button></div><div class="blocos-hoje">${blocos}</div>`;
   alvo.querySelectorAll('[data-tarefa]').forEach((b) => b.addEventListener('click', () => abrirTarefa(Number(b.dataset.tarefa), tarefas)));
   alvo.querySelector('.nova-tarefa').addEventListener('click', () => novaTarefa());
 }
@@ -1128,6 +1128,67 @@ async function radarTela(dataPedida) {
   if (d.gerando) setTimeout(espera, 10_000);
 }
 
+// ---------------- avisos (bolinhas estilo Instagram) ----------------
+const AREA_DO_AVISO = { tarefas: ['#/quadro', '.a-quadro'], prazos: ['#/quadro', '.a-quadro'], lembretes: ['#/', '.hoje-topo'], radar: ['#/radar', '.a-radar'], estudos: ['#/estudos', '.a-estudos'], equipe: ['#/historico', '.a-equipe'] };
+const ICONE_AVISO = { tarefas: '📌', prazos: '⏰', lembretes: '🔔', radar: '📡', estudos: '📚', equipe: '👥' };
+let avisos = { itens: [], contagem: {}, total: 0 };
+async function atualizarAvisos() {
+  if (!eu || eu.trocarSenha || eu.modo) return;
+  avisos = await api('/api/avisos').catch(() => avisos);
+  const sino = document.querySelector('.sino');
+  sino.hidden = false;
+  const bolha = sino.querySelector('.bolha');
+  bolha.hidden = !avisos.total;
+  bolha.textContent = avisos.total > 9 ? '9+' : avisos.total;
+  sino.setAttribute('aria-label', avisos.total ? `${avisos.total} avisos novos` : 'Sem avisos novos');
+  const inc = document.querySelector('.incentivo');
+  if (inc) inc.innerHTML = `<span title="Dias seguidos usando a Central">🔥 ${avisos.sequencia || 1} ${avisos.sequencia === 1 ? 'dia' : 'dias seguidos'}</span><span title="Tarefas que você terminou ou aprovou hoje">✅ ${avisos.resolvidasHoje || 0} resolvida${avisos.resolvidasHoje === 1 ? '' : 's'} hoje</span>${avisos.total ? `<span class="pendente">🔴 ${avisos.total} para ver</span>` : '<span>✨ tudo em dia</span>'}`;
+  try { if (avisos.total) navigator.setAppBadge?.(avisos.total); else navigator.clearAppBadge?.(); } catch { /* sem badge */ }
+  notificarNovos(avisos.itens.filter((i) => i.importante));
+  const porSeletor = {};
+  for (const [area, [, sel]] of Object.entries(AREA_DO_AVISO)) porSeletor[sel] = (porSeletor[sel] || 0) + (avisos.contagem[area] || 0);
+  for (const [sel, n] of Object.entries(porSeletor)) {
+    const el = tela.querySelector(sel);
+    if (!el) continue;
+    el.querySelector('.bolinha')?.remove();
+    if (n) el.insertAdjacentHTML('beforeend', `<span class="bolinha" aria-label="${n} novos">${n > 9 ? '9+' : n}</span>`);
+  }
+}
+// Notificação do sistema (canto da tela) para avisos importantes novos, uma vez cada
+const jaNotificados = new Set((() => { try { return JSON.parse(sessionStorage.getItem('vz-notificados') || '[]'); } catch { return []; } })());
+function notificarNovos(lista) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  for (const i of lista) {
+    const chave = `${i.area}:${i.id ?? ''}:${i.em}`;
+    if (jaNotificados.has(chave)) continue;
+    jaNotificados.add(chave);
+    try { new Notification('Central da VZ', { body: i.texto, icon: 'icone-192.png', tag: chave }); } catch { /* sem notificação */ }
+  }
+  try { sessionStorage.setItem('vz-notificados', JSON.stringify([...jaNotificados].slice(-200))); } catch { /* sem armazenamento */ }
+}
+async function marcarVistoArea(area) {
+  if (!avisos.contagem[area]) return;
+  await postar('/api/avisos/visto', { area });
+  atualizarAvisos();
+}
+function abrirAvisos() {
+  const quando = (em) => new Date(em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const d = janela(`
+    <h2>🔔 Avisos</h2>
+    <p class="meta">O que aconteceu desde a última vez que você olhou. Prazos e lembretes ficam aqui até serem resolvidos.</p>
+    ${'Notification' in window && Notification.permission === 'default' ? '<button type="button" class="btn ativar-notif">💻 Avisar também no canto da tela</button>' : ''}
+    ${avisos.total ? `<ul class="lista-avisos">${avisos.itens.map((i) => `
+      <li class="${i.importante ? 'importante' : ''}"><a href="${['tarefas', 'prazos'].includes(i.area) ? '#/quadro' : i.area === 'estudos' && i.slug ? `#/estudos/${esc(i.slug)}` : AREA_DO_AVISO[i.area][0]}" data-area="${i.area}">
+        <span class="ico">${ICONE_AVISO[i.area]}</span><span>${esc(i.texto)}<small>${i.area === 'lembretes' ? 'lembrete' : quando(i.em)}</small></span></a>${i.area === 'lembretes' ? `<button type="button" class="btn btn-claro resolver" data-lembrete="${i.id}">Feito</button>` : ''}</li>`).join('')}</ul>
+      <button type="button" class="btn btn-claro tudo-visto">Marcar tudo como visto</button>` : '<p class="vazio-grande">Tudo em dia. Nada novo por aqui. ✨</p>'}`);
+  d.querySelectorAll('[data-area]').forEach((a) => a.addEventListener('click', () => { marcarVistoArea(a.dataset.area); d.close(); }));
+  d.querySelectorAll('[data-lembrete]').forEach((b) => b.addEventListener('click', async () => { await postar('/api/acao', { nome: 'concluir_lembrete', entrada: { id: Number(b.dataset.lembrete) } }); d.close(); atualizarAvisos(); }));
+  d.querySelector('.ativar-notif')?.addEventListener('click', async () => { await Notification.requestPermission(); d.close(); atualizarAvisos(); });
+  d.querySelector('.tudo-visto')?.addEventListener('click', async () => { await postar('/api/avisos/visto', { area: 'tudo' }); d.close(); atualizarAvisos(); });
+}
+document.querySelector('.sino').addEventListener('click', abrirAvisos);
+setInterval(() => { if (!document.hidden) atualizarAvisos(); }, 60_000);
+
 // ---------------- roteamento ----------------
 async function rotear() {
   if (!eu) return;
@@ -1142,6 +1203,9 @@ async function rotear() {
   document.querySelector('.voltar').hidden = !area;
   const telas = { '': home, conversa, quadro, projetos, estudos: () => estudos(sub), memoria, historico: historicoTela, radar: () => radarTela(sub) };
   await (telas[area] || home)();
+  const vista = { quadro: 'tarefas', radar: 'radar', estudos: 'estudos', historico: 'equipe' }[area];
+  await atualizarAvisos();
+  if (vista) marcarVistoArea(vista);
   tela.focus({ preventScroll: true });
   scrollTo(0, 0);
 }

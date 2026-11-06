@@ -147,3 +147,23 @@ test('dev só mexe nas tarefas que estão com ele', async () => {
   await ia.executarAcao('passar_tarefa', { id, para: 'agente' }, dono);
   assert.match(await ia.executarAcao('listar_tarefas', { com: 'agente' }, dono), /Do Gabriel/);
 });
+
+test('avisos: o que outra pessoa fez aparece; o que eu fiz não; lembrete vencido fica até resolver', async () => {
+  await ia.executarAcao('criar_tarefa', { titulo: 'Aviso teste', projeto: 'geral', coluna: 'a fazer', para: dev.usuario }, dono);
+  const id = ia.tarefas().at(-1).id;
+  await ia.executarAcao('concluir_tarefa', { id, nota: 'pronto' }, dev);
+  const doDono = ia.avisosPara(dono, {});
+  assert.ok(doDono.itens.some((i) => i.area === 'tarefas' && i.id === id && i.importante), 'o dono devia ver a tarefa esperando aprovação');
+  assert.ok(!ia.avisosPara(dev, {}).itens.some((i) => i.area === 'tarefas' && i.id === id), 'o próprio dev não precisa de aviso do que ele fez');
+  // depois de ver, some
+  assert.ok(!ia.avisosPara(dono, { tarefas: new Date(Date.now() + 1000).toISOString() }).itens.some((i) => i.area === 'tarefas'));
+  // lembrete no passado vira aviso importante e só sai quando resolvido
+  await assert.rejects(ia.executarAcao('criar_lembrete', { texto: 'x', quando: 'amanhã' }, dono), /AAAA/);
+  assert.match(await ia.executarAcao('criar_lembrete', { texto: 'Ligar para a NOAR', quando: '2020-01-01T09:00' }, dono), /Lembrete #1/);
+  const comLembrete = ia.avisosPara(dono, { tarefas: '2999', radar: '2999', estudos: '2999', equipe: '2999' });
+  assert.ok(comLembrete.itens.some((i) => i.area === 'lembretes' && /NOAR/.test(i.texto)));
+  await ia.executarAcao('concluir_lembrete', { id: 1 }, dono);
+  assert.ok(!ia.avisosPara(dono, { tarefas: '2999', radar: '2999', estudos: '2999', equipe: '2999' }).itens.some((i) => i.area === 'lembretes'));
+  // lembrete é privado: outra pessoa não vê
+  assert.match(await ia.executarAcao('ver_lembretes', {}, dev), /Nenhum/);
+});
